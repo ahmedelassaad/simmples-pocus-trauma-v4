@@ -193,3 +193,19 @@ button { cursor: pointer; }
 .wave-dot-volume { fill: #ffe09b; }
 .wave-cursor { stroke: rgba(255,255,255,.24); stroke-width: 1; }
 .live-waveform-card .waveform-head strong::after { content: " • dinâmico"; color: var(--cyan-soft); font-size: 12px; letter-spacing: .02em; }
+
+
+/* SIMMples Calc */
+.drug-summary { border: 1px solid rgba(114,245,255,.20); background: rgba(1,6,29,.38); border-radius: 18px; padding: 13px; }
+.drug-summary strong { display: flex; align-items: center; gap: 7px; color: var(--white); font-size: 17px; }
+.drug-summary strong svg { color: var(--cyan-soft); }
+.drug-summary span { display: block; color: var(--cyan-soft); font-size: 12px; font-weight: 900; margin-top: 3px; }
+.drug-summary p { margin: 8px 0 10px; color: #d8e6ff; line-height: 1.45; }
+.calc-table-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; background: rgba(1,6,29,.32); }
+.calc-table { width: 100%; border-collapse: collapse; min-width: 310px; }
+.calc-table th, .calc-table td { text-align: left; padding: 11px 12px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.calc-table th { color: var(--cyan-soft); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.calc-table td { color: #e9f5ff; font-weight: 800; }
+.calc-table tr:last-child td { border-bottom: 0; }
+.protocol-list { display: flex; flex-direction: column; gap: 10px; }
+.notice-box svg { vertical-align: -3px; margin-right: 5px; color: var(--warning); }

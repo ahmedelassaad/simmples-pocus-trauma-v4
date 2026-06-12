@@ -13,7 +13,7 @@ import { APP_IDEAS } from './data/appIdeas.js';
 const apps = {
   gaso: { title: 'SIMMples GASO', subtitle: 'Gasometria arterial estruturada', icon: Droplets, component: GasoApp },
   vent: { title: 'SIMMples VENT', subtitle: 'Ventilação mecânica no DE', icon: Wind, component: VentApp },
-  calc: { title: 'SIMMples Calc', subtitle: 'Base visual para calculadoras institucionais', icon: Calculator, component: CalcApp },
+  calc: { title: 'SIMMples Calc', subtitle: 'DVA, VIS e dose ↔ vazão', icon: Calculator, component: CalcApp },
   trauma: { title: 'SIMMples TRAUMA', subtitle: 'Hemorragia oculta e choque', icon: Activity, component: TraumaApp },
   sepse: { title: 'SIMMples SEPSE', subtitle: 'Triagem de gravidade e primeira hora', icon: HeartPulse, component: SepseApp },
   pocus: { title: 'SIMMples POCUS', subtitle: 'RUSH/choque e laudo rápido', icon: Stethoscope, component: PocusApp }
