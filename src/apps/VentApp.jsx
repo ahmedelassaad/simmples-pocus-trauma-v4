@@ -99,14 +99,16 @@ export function VentApp() {
   }, [tre.vt, tre.rr]);
 
   const waveformParams = useMemo(() => ({
+    mode,
     rr: gas.rr || rox.rr || tre.rr,
     peep: gas.peep || mech.peep,
     pplat: mech.pplat || (profile === 'ards' ? 28 : profile === 'obstructive' ? 24 : 22),
+    ppeak: mech.ppeak || (profile === 'obstructive' ? 36 : profile === 'ards' ? 32 : 28),
     vt: mech.vt || tv.vt6,
     pco2: gas.pco2,
     fio2: gas.fio2 || rox.fio2,
     profile
-  }), [gas, rox.rr, rox.fio2, tre.rr, mech, tv.vt6, profile]);
+  }), [mode, gas, rox.rr, rox.fio2, tre.rr, mech, tv.vt6, profile]);
 
   const modeAttention = {
     normal: 'Atenção ao Modo: manter proteção pulmonar e ajustar ao objetivo clínico.',
@@ -211,7 +213,7 @@ export function VentApp() {
 
       {activeTab === 'asynchronies' && (
         <Card title="Assincronias" kicker="Curvas dinâmicas">
-          <div className="notice-box">As curvas abaixo são geradas pelo próprio app e mudam com os parâmetros preenchidos em Setup/Mecânica. Use como reconhecimento visual rápido, não como simulador fisiológico definitivo.</div>
+          <div className="notice-box">As curvas abaixo são desenhadas em tempo real pelo próprio app em SVG. Elas mudam com modo, FR, PEEP, platô, pico, VT, pCO₂ e perfil clínico preenchidos em Setup/Mecânica. Use como reconhecimento visual rápido, não como simulador fisiológico definitivo.</div>
           <div className="asynchrony-list top-gap">
             {ASYNCHRONIES.map((item) => (
               <article key={item.name} className="mini-card">

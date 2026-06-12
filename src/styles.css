@@ -171,3 +171,25 @@ button { cursor: pointer; }
 .wave-layer-1 path { stroke: var(--cyan-soft); }
 .wave-layer-2 path { stroke: #8cf0c6; }
 .wave-layer-3 path { stroke: #ffe09b; }
+
+
+.waveform-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+.waveform-meta span { border: 1px solid rgba(114,245,255,.18); background: rgba(24,216,232,.07); color: var(--cyan-soft); border-radius: 999px; padding: 5px 8px; font-size: 11px; font-weight: 900; }
+.dynamic-waveform-wrap { background: radial-gradient(circle at 20% 0%, rgba(24,216,232,.11), transparent 28%), linear-gradient(180deg, rgba(3,13,45,.95), rgba(1,6,29,.78)); }
+.dynamic-waveform-svg { color: var(--cyan-soft); min-height: 250px; }
+.wave-grid { stroke: rgba(255,255,255,.08); stroke-width: 1; }
+.wave-grid.soft { stroke: rgba(255,255,255,.045); }
+.wave-axis { stroke: rgba(255,255,255,.16); stroke-width: 1; }
+.wave-zero { stroke: rgba(114,245,255,.22); stroke-width: 1.2; stroke-dasharray: 4 5; }
+.wave-label { fill: #eaf8ff; font-size: 12px; font-weight: 900; }
+.wave-unit { fill: rgba(159,180,216,.8); font-size: 10px; font-weight: 700; }
+.live-wave { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.6; filter: drop-shadow(0 0 5px rgba(24,216,232,.18)); }
+.live-wave-pressure { stroke: #72f5ff; }
+.live-wave-flow { stroke: #8cf0c6; }
+.live-wave-volume { stroke: #ffe09b; }
+.wave-dot { stroke: rgba(1,6,29,.88); stroke-width: 1.5; }
+.wave-dot-pressure { fill: #72f5ff; }
+.wave-dot-flow { fill: #8cf0c6; }
+.wave-dot-volume { fill: #ffe09b; }
+.wave-cursor { stroke: rgba(255,255,255,.24); stroke-width: 1; }
+.live-waveform-card .waveform-head strong::after { content: " • dinâmico"; color: var(--cyan-soft); font-size: 12px; letter-spacing: .02em; }
