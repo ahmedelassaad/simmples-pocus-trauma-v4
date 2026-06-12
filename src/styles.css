@@ -150,3 +150,24 @@ button { cursor: pointer; }
 .resource-link strong { color: var(--white); font-size: 14px; }
 .resource-link small { color: var(--slate); line-height: 1.35; }
 @media (max-width: 430px) { .atlas-grid { grid-template-columns: 1fr; } }
+
+
+.option-field { gap: 8px; }
+.option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+.option-pill { min-height: 44px; border-radius: 16px; border: 1px solid rgba(255,255,255,.10); background: rgba(1,6,29,.42); color: var(--slate); font-weight: 850; padding: 9px 10px; text-align: center; line-height: 1.15; }
+.option-pill:hover { border-color: rgba(114,245,255,.42); background: rgba(24,216,232,.08); color: var(--white); }
+.option-pill-active { background: linear-gradient(135deg, var(--cyan), var(--cyan-soft)); color: #001034; border-color: transparent; box-shadow: 0 10px 26px rgba(24,216,232,.13); }
+.select-static-note { border: 1px dashed rgba(114,245,255,.25); border-radius: 16px; padding: 12px; color: #d8e6ff; background: rgba(24,216,232,.06); font-weight: 750; }
+@media (max-width: 430px) { .option-grid { grid-template-columns: 1fr; } }
+.waveform-card { border: 1px solid rgba(114,245,255,.18); background: rgba(1,6,29,.42); border-radius: 18px; padding: 12px; margin-top: 10px; }
+.waveform-head { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+.waveform-head strong { color: var(--white); letter-spacing: -0.02em; }
+.waveform-head small { color: var(--slate); line-height: 1.35; }
+.waveform-svg-wrap { border-radius: 14px; background: linear-gradient(180deg, rgba(3,13,45,.9), rgba(1,6,29,.7)); border: 1px solid rgba(255,255,255,.06); overflow: hidden; }
+.waveform-svg { width: 100%; height: auto; display: block; }
+.wave-axis, .wave-zero { stroke: rgba(255,255,255,.16); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.wave-layer path { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.2; vector-effect: non-scaling-stroke; }
+.wave-layer text { font-size: 9px; font-weight: 800; fill: rgba(216,230,255,.72); text-anchor: end; }
+.wave-layer-1 path { stroke: var(--cyan-soft); }
+.wave-layer-2 path { stroke: #8cf0c6; }
+.wave-layer-3 path { stroke: #ffe09b; }

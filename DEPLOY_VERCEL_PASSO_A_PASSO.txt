@@ -1,25 +1,26 @@
-SIMMples POCUS + Trauma - Deploy Vercel v4
+SIMMples POCUS + Trauma — Deploy na Vercel
 
-IMPORTANTE:
-- Esta versão NÃO inclui package-lock.json.
-- Isso evita erro de npm install por lock gerado em ambiente interno.
-- Suba os arquivos exatamente na raiz do repositório.
+1) Crie uma conta ou entre na Vercel.
+2) Crie um repositório no GitHub chamado simmples-pocus-trauma.
+3) Dentro do repositório, clique em Add file > Upload files.
+4) Suba TODOS os arquivos desta pasta, incluindo:
+   - src
+   - public, se existir
+   - package.json
+   - package-lock.json
+   - index.html
+   - vercel.json
+5) Clique em Commit changes.
+6) Na Vercel, clique em Add New > Project.
+7) Selecione o repositório simmples-pocus-trauma.
+8) Confirme as configurações:
+   Framework Preset: Vite
+   Build Command: npm run build
+   Output Directory: dist
+   Install Command: npm install
+9) Clique em Deploy.
+10) Ao terminar, teste:
+   /pocus
+   /trauma
 
-Arquivos que devem aparecer na primeira tela do GitHub:
-- src
-- public
-- package.json
-- index.html
-- vite.config.js
-- vercel.json
-- .npmrc
-- README.md
-
-Na Vercel:
-Framework Preset: Vite
-Install Command: npm install
-Build Command: npm run build
-Output Directory: dist
-
-Se der erro, conferir se o GitHub não ficou com uma pasta acima de tudo.
-O package.json precisa estar visível na primeira tela do repositório.
+Observação: o arquivo vercel.json já foi incluído para evitar erro 404 ao abrir /pocus ou /trauma diretamente.

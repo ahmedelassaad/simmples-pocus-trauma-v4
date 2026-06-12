@@ -20,17 +20,34 @@ export function NumberField({ label, value, onChange, unit, placeholder = '', st
 }
 
 export function SelectField({ label, value, onChange, options }) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <div className="field-box select-box">
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
-          ))}
-        </select>
+  const selected = options.find((option) => option.value === value);
+
+  if (!options || options.length <= 1) {
+    return (
+      <div className="field option-field">
+        <span>{label}</span>
+        <div className="select-static-note">{selected?.label || options?.[0]?.label || 'Sem opções adicionais'}</div>
       </div>
-    </label>
+    );
+  }
+
+  return (
+    <div className="field option-field">
+      <span>{label}</span>
+      <div className="option-grid" role="radiogroup" aria-label={label}>
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={value === option.value ? 'option-pill option-pill-active' : 'option-pill'}
+            onClick={() => onChange(option.value)}
+            aria-pressed={value === option.value}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

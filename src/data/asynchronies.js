@@ -1,27 +1,42 @@
 export const ASYNCHRONIES = [
   {
-    name: 'Esforço Ineficaz', type: 'Disparo', curve: 'Curva de fluxo',
-    finding: 'Deflexão na curva expiratória sem novo ciclo; o ventilador ignorou o esforço do paciente.',
-    action: 'Tornar o trigger mais sensível. Em VCV/PCV, aliviar possível auto-PEEP aumentando tempo expiratório.'
+    name: 'Esforço Ineficaz',
+    type: 'Disparo',
+    curve: 'Fluxo-tempo e pressão-tempo',
+    variant: 'ineffective',
+    finding: 'Deflexão na curva expiratória sem novo ciclo: o paciente tentou disparar, mas o ventilador ignorou o esforço.',
+    action: 'Tornar o trigger mais sensível. Investigar auto-PEEP, excesso de suporte, sedação profunda e tempo expiratório insuficiente.'
   },
   {
-    name: 'Duplo Disparo', type: 'Disparo', curve: 'Curva de pressão',
-    finding: 'Dois ciclos consecutivos; tempo neural maior que o tempo inspiratório programado.',
-    action: 'VCV: aumentar fluxo de pico ou volume corrente se permitido. PCV: aumentar tempo inspiratório.'
+    name: 'Duplo Disparo',
+    type: 'Disparo/ciclagem',
+    curve: 'Pressão-tempo e volume-tempo',
+    variant: 'doubleTrigger',
+    finding: 'Dois ciclos consecutivos com pouca ou nenhuma expiração entre eles; tempo neural maior que o tempo inspiratório programado.',
+    action: 'VCV: avaliar aumento de fluxo ou tempo inspiratório/ajuste de VT dentro de limites protetores. PCV/PSV: ajustar tempo inspiratório/ciclagem e demanda do paciente.'
   },
   {
-    name: 'Ciclagem Prematura', type: 'Ciclagem', curve: 'Curva de fluxo',
-    finding: 'Expiração começa abruptamente com pico negativo; a máquina cortou o ar antes da hora.',
-    action: 'VCV/PCV: aumentar tempo inspiratório. PSV: reduzir porcentagem de ciclagem.'
+    name: 'Ciclagem Prematura',
+    type: 'Ciclagem',
+    curve: 'Fluxo-tempo',
+    variant: 'premature',
+    finding: 'Expiração começa de forma abrupta enquanto o esforço inspiratório ainda parece ativo; pico negativo logo após a inspiração.',
+    action: 'VCV/PCV: aumentar tempo inspiratório quando apropriado. PSV: reduzir porcentagem de ciclagem ou ajustar rise/PS conforme o caso.'
   },
   {
-    name: 'Ciclagem Tardia', type: 'Ciclagem', curve: 'Curva de pressão',
-    finding: 'Paciente quer expirar, mas a máquina continua; pode gerar “chifre” no final da inspiração.',
-    action: 'VCV/PCV: reduzir tempo inspiratório. PSV: aumentar porcentagem de ciclagem.'
+    name: 'Ciclagem Tardia',
+    type: 'Ciclagem',
+    curve: 'Pressão-tempo',
+    variant: 'delayed',
+    finding: 'Paciente quer expirar, mas a máquina continua insuflando; pode aparecer “chifre”/pressurização no final da inspiração.',
+    action: 'VCV/PCV: reduzir tempo inspiratório. PSV: aumentar porcentagem de ciclagem e avaliar excesso de suporte.'
   },
   {
-    name: 'Fome de Fluxo', type: 'Fluxo', curve: 'Curva de pressão',
-    finding: 'Curva pressão-tempo abaulada para baixo, sugerindo fluxo inspiratório insuficiente.',
-    action: 'VCV: aumentar fluxo inspiratório de pico. Em PCV/PSV, considerar ajuste de pressão de suporte/ΔP.'
+    name: 'Fome de Fluxo',
+    type: 'Fluxo',
+    curve: 'Pressão-tempo',
+    variant: 'flowStarvation',
+    finding: 'Curva pressão-tempo escavada/abaulada para baixo durante a inspiração, sugerindo fluxo inspiratório insuficiente para a demanda.',
+    action: 'VCV: aumentar fluxo inspiratório de pico ou alterar padrão de fluxo. PCV/PSV: avaliar rise time, pressão de suporte/ΔP e drive respiratório.'
   }
 ];
