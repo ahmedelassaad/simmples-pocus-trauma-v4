@@ -1,0 +1,25 @@
+SIMMples POCUS + Trauma - Deploy Vercel v4
+
+IMPORTANTE:
+- Esta versão NÃO inclui package-lock.json.
+- Isso evita erro de npm install por lock gerado em ambiente interno.
+- Suba os arquivos exatamente na raiz do repositório.
+
+Arquivos que devem aparecer na primeira tela do GitHub:
+- src
+- public
+- package.json
+- index.html
+- vite.config.js
+- vercel.json
+- .npmrc
+- README.md
+
+Na Vercel:
+Framework Preset: Vite
+Install Command: npm install
+Build Command: npm run build
+Output Directory: dist
+
+Se der erro, conferir se o GitHub não ficou com uma pasta acima de tudo.
+O package.json precisa estar visível na primeira tela do repositório.
