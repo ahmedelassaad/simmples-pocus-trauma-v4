@@ -1,4 +1,5 @@
 import { BrandHeader } from './BrandHeader.jsx';
+import { AiPanel } from './AiPanel.jsx';
 
 export function AppShell({ title, subtitle, children, onBack, footer }) {
   return (
@@ -6,6 +7,7 @@ export function AppShell({ title, subtitle, children, onBack, footer }) {
       <div className="phone-frame">
         <BrandHeader title={title} subtitle={subtitle} onBack={onBack} />
         <section className="app-content">{children}</section>
+        <AiPanel appTitle={title} appSubtitle={subtitle} />
         <footer className="footer-note">
           {footer || 'Ferramenta educacional e de suporte à decisão. A conduta final é responsabilidade do médico assistente.'}
         </footer>

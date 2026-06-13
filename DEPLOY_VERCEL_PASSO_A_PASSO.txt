@@ -24,3 +24,16 @@ SIMMples POCUS + Trauma — Deploy na Vercel
    /trauma
 
 Observação: o arquivo vercel.json já foi incluído para evitar erro 404 ao abrir /pocus ou /trauma diretamente.
+
+
+CONFIGURAR SIMM AI NA VERCEL
+----------------------------
+1. Abra o projeto na Vercel.
+2. Vá em Settings > Environment Variables.
+3. Adicione:
+   OPENAI_API_KEY = sua chave da OpenAI
+4. Opcional:
+   OPENAI_MODEL = gpt-4.1-mini
+5. Salve e faça novo Deploy.
+
+Sem OPENAI_API_KEY, a suite continua funcionando normalmente, mas o botão SIMM AI mostrará que a IA ainda não está configurada.

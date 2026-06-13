@@ -30,3 +30,9 @@ Conteúdo público identificado:
 
 - Não é possível obter o repositório privado original, histórico Git, arquivos TypeScript/React originais ou variáveis de ambiente apenas a partir da URL pública.
 - O que foi produzido é uma reconstrução limpa, modular e editável, baseada na interface renderizada e na identidade visual pública.
+
+## v11 — SIMM AI
+- Adicionada função serverless `/api/simm-ai.js`.
+- Adicionado componente `AiPanel` em todos os módulos via `AppShell`.
+- A IA usa o contexto visível da tela e não modifica cálculos, conteúdos ou animações.
+- Requer `OPENAI_API_KEY` como variável de ambiente na Vercel.

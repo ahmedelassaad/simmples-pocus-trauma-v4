@@ -583,3 +583,175 @@ body {
   .calc-action-row { grid-template-columns: 1fr; }
   .suite-dock-item svg { width: 17px; height: 17px; }
 }
+
+/* SIMM Suite v11 — AI Layer */
+.ai-panel {
+  position: relative;
+  z-index: 9;
+  margin: 0 14px 12px;
+}
+.ai-toggle {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid rgba(114,245,255,.20);
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(114,245,255,.22), transparent 36%),
+    linear-gradient(135deg, rgba(24,216,232,.13), rgba(1,6,29,.58));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-weight: 950;
+  letter-spacing: -.02em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.ai-toggle svg { color: var(--cyan-soft); }
+.ai-panel-open .ai-toggle {
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+.ai-card {
+  margin-top: 9px;
+  border: 1px solid rgba(114,245,255,.18);
+  border-radius: 22px;
+  padding: 13px;
+  background: linear-gradient(180deg, rgba(8,25,72,.88), rgba(1,6,29,.82));
+  box-shadow: 0 20px 55px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter: blur(16px);
+}
+.ai-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.ai-head strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 18px;
+  letter-spacing: -.03em;
+  margin-top: 2px;
+}
+.ai-head strong svg { color: var(--cyan-soft); }
+.ai-head small {
+  color: var(--slate);
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: right;
+  max-width: 170px;
+}
+.ai-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.ai-action-grid button {
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 15px;
+  background: rgba(1,6,29,.38);
+  color: #d8e6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 950;
+}
+.ai-action-grid button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(114,245,255,.32);
+  background: rgba(24,216,232,.08);
+}
+.ai-action-grid button:disabled { opacity: .55; cursor: not-allowed; }
+.ai-question {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 10px;
+}
+.ai-question span {
+  color: var(--slate);
+  font-size: 12px;
+  font-weight: 850;
+}
+.ai-question textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 78px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 16px;
+  background: rgba(1,6,29,.42);
+  color: var(--white);
+  outline: 0;
+  padding: 11px 12px;
+  line-height: 1.35;
+  font-size: 14px;
+}
+.ai-question textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(24,216,232,.13);
+}
+.ai-question textarea::placeholder { color: rgba(159,180,216,.45); }
+.ai-send { width: 100%; margin-top: 9px; }
+.spin { animation: simm-spin 1s linear infinite; }
+@keyframes simm-spin { to { transform: rotate(360deg); } }
+.ai-error {
+  margin-top: 10px;
+  border: 1px solid rgba(255,93,108,.32);
+  border-radius: 16px;
+  background: rgba(255,93,108,.10);
+  color: #ffb7bf;
+  padding: 10px 11px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.ai-answer {
+  margin-top: 10px;
+  border: 1px solid rgba(114,245,255,.18);
+  border-radius: 18px;
+  background: rgba(1,6,29,.38);
+  overflow: hidden;
+}
+.ai-answer-top {
+  min-height: 42px;
+  border-bottom: 1px solid rgba(114,245,255,.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 11px;
+}
+.ai-answer-top strong { color: var(--cyan-soft); font-size: 13px; }
+.ai-answer-top button {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  color: #d8e6ff;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 900;
+}
+.ai-answer p {
+  margin: 0;
+  padding: 12px;
+  color: #e7f3ff;
+  white-space: pre-line;
+  line-height: 1.52;
+  font-size: 14px;
+}
+@media (max-width: 430px) {
+  .ai-panel { margin: 0 12px 10px; }
+  .ai-card { padding: 11px; }
+  .ai-head { flex-direction: column; gap: 5px; }
+  .ai-head small { text-align: left; max-width: 100%; }
+  .ai-action-grid { grid-template-columns: 1fr; }
+}

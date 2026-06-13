@@ -42,3 +42,33 @@ Versão baseada na v9, mantendo conteúdo, cálculos e animações do VENT. Melh
 - Ajustes de toque, espaçamento e responsividade mobile.
 
 As animações dinâmicas do VENT não foram alteradas.
+
+## SIMM AI — camada de inteligência artificial
+
+A v11 inclui uma camada consultiva chamada **SIMM AI** em todos os módulos da suite. Ela não altera os cálculos determinísticos, protocolos, curvas do VENT ou conteúdos clínicos já implementados. A IA lê o contexto visível da tela e pode ajudar a explicar, resumir e checar campos ausentes.
+
+### Variáveis de ambiente necessárias na Vercel
+
+Configure no projeto da Vercel:
+
+```txt
+OPENAI_API_KEY=cole_sua_chave_aqui
+```
+
+Opcionalmente, defina o modelo:
+
+```txt
+OPENAI_MODEL=gpt-4.1-mini
+```
+
+A chave fica no backend serverless em `/api/simm-ai.js`; ela não é exposta no navegador.
+
+### Funções disponíveis
+
+- Explicar tela
+- Checar campos
+- Gerar resumo
+- Dupla checagem
+- Pergunta livre sobre a tela atual
+
+A IA é uma camada consultiva e não substitui protocolo local, dupla checagem, decisão médica ou os cálculos determinísticos da suite.
