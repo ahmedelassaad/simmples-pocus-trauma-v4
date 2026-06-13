@@ -331,6 +331,11 @@ export function CalcApp() {
   const doseValue = currentDose === null ? '--' : `${fmt(currentDose, doseDigits(drug))} ${drug.doseUnit}`;
   const targetFlowValue = targetFlow === null ? '--' : `${fmt(targetFlow, flowDigits(targetFlow))} mL/h`;
   const flowRange = minFlow === null || maxFlow === null ? 'Informe o peso' : `${fmt(minFlow, flowDigits(minFlow))}–${fmt(maxFlow, flowDigits(maxFlow))} mL/h`;
+  const midDose = drug.doseMin + ((drug.doseMax - drug.doseMin) / 2);
+  const currentStatus = !flow ? 'Preencha a vazão atual' : currentDose === null ? 'Dados insuficientes' : currentDose < drug.doseMin ? 'Abaixo da faixa' : currentDose > drug.doseMax ? 'Acima da faixa' : 'Dentro da faixa';
+  const targetStatus = targetDoseNumber === null ? 'Selecione ou digite uma dose alvo' : targetDoseNumber < drug.doseMin ? 'Dose alvo abaixo da faixa' : targetDoseNumber > drug.doseMax ? 'Dose alvo acima da faixa' : 'Dose alvo dentro da faixa';
+  const targetTone = rangeTone(targetDoseNumber, drug);
+  const applyDose = (dose) => setTargetDose(String(Number(dose.toFixed(4))));
 
   const report = `SIMMples Calc — DVA\nDroga: ${drug.name}\nAcesso selecionado: ${access === 'central' ? 'central' : 'periférico'}\nApresentação: ${drug.presentation}\nDiluição padrão: ${drug.dilution}\nConcentração: ${drug.concentrationLabel}\nFaixa usual: ${fmt(drug.doseMin, doseDigits(drug))} a ${fmt(drug.doseMax, doseDigits(drug))} ${drug.doseUnit}\nPeso: ${weight || '--'} kg\nFaixa de vazão calculada: ${flowRange}\nVazão atual: ${flow || '--'} mL/h\nDose estimada pela vazão: ${doseValue}\nDose alvo: ${targetDose || '--'} ${drug.doseUnit}\nVazão para dose alvo: ${targetFlowValue}\n${drug.bolus && bolus ? `Bolus: ${fmt(bolus.minMg,1)}–${fmt(bolus.maxMg,1)} mg = ${fmt(bolus.minMl,1)}–${fmt(bolus.maxMl,1)} mL em ${drug.bolus.minutes} min` : ''}\nObservação: ferramenta consultiva. Conferir protocolo local, diluição, bomba de infusão e dupla checagem.`;
 
@@ -340,7 +345,26 @@ export function CalcApp() {
 
       {activeTab === 'calc' && (
         <>
-          <Card title="Drogas Vasoativas" kicker="Dose ↔ vazão pela diluição padrão">
+          <section className="calc-spotlight" aria-label="Resumo rápido do cálculo">
+            <div className="calc-spotlight-top">
+              <div>
+                <span className="kicker">Resumo rápido</span>
+                <strong>{drug.name}</strong>
+                <small>{access === 'central' ? 'Acesso central' : 'Acesso periférico'} • {drug.concentrationLabel}</small>
+              </div>
+              <span className={`status-pill status-${targetTone}`}>{targetStatus}</span>
+            </div>
+            <div className="calc-hero-result">
+              <span>Vazão para dose alvo</span>
+              <strong>{targetFlowValue}</strong>
+              <small>Faixa usual de vazão: {flowRange}</small>
+            </div>
+            <div className="calc-mini-grid">
+              <div><span>Dose pela vazão</span><strong>{doseValue}</strong><small>{currentStatus}</small></div>
+              <div><span>Equivalência</span><strong>{oneMlHText(drug, weightNumber)}</strong><small>Por 1 mL/h</small></div>
+            </div>
+          </section>
+          <Card title="Drogas Vasoativas" kicker="Dose ↔ vazão pela diluição padrão" className="clean-card">
             <SelectField label="Droga" value={drugId} onChange={(value) => { setDrugId(value); setFlow(''); setTargetDose(''); }} options={drugOptions} />
             <Segmented value={access} onChange={setAccess} options={accessOptions} />
             <div className="drug-summary top-gap">
@@ -354,14 +378,19 @@ export function CalcApp() {
             </div>
           </Card>
 
-          <Card title="Cálculo automático">
+          <Card title="Cálculo automático" className="clean-card calc-main-card">
             <div className="grid-2">
               <NumberField label="Peso" value={weight} onChange={setWeight} unit="kg" placeholder="70" />
               <NumberField label="Vazão atual" value={flow} onChange={setFlow} unit="mL/h" placeholder="ex: 12" />
             </div>
             <div className="grid-2 top-gap">
               <NumberField label={`Dose alvo (${drug.doseUnit})`} value={targetDose} onChange={setTargetDose} unit={drug.doseUnit} placeholder={`${drug.doseMin}`} />
-              <Result label="Vazão para dose alvo" value={targetFlowValue} />
+              <Result label="Vazão para dose alvo" value={targetFlowValue} tone={targetTone} helper={targetStatus} />
+            </div>
+            <div className="dose-shortcuts" aria-label="Atalhos de dose">
+              <button type="button" onClick={() => applyDose(drug.doseMin)}>Mínima: {fmt(drug.doseMin, doseDigits(drug))}</button>
+              <button type="button" onClick={() => applyDose(midDose)}>Meio: {fmt(midDose, doseDigits(drug))}</button>
+              <button type="button" onClick={() => applyDose(drug.doseMax)}>Máxima: {fmt(drug.doseMax, doseDigits(drug))}</button>
             </div>
             {needsWeight(drug) && !weightNumber && <div className="notice-box top-gap">Informe o peso para calcular dose por kg e faixa de vazão.</div>}
             <div className="grid-3 top-gap">
@@ -381,7 +410,7 @@ export function CalcApp() {
             <div className="notice-box top-gap"><AlertTriangle size={16} /> Ferramenta consultiva baseada nos parâmetros fornecidos. Conferir diluição preparada, bomba, concentração final, acesso e dupla checagem.</div>
           </Card>
 
-          <Card title="Tabela de Titulação">
+          <Card title="Tabela de Titulação" className="clean-card">
             <div className="calc-table-wrap">
               <table className="calc-table">
                 <thead>
@@ -407,7 +436,7 @@ export function CalcApp() {
       )}
 
       {activeTab === 'vis' && (
-        <Card title="VIS" kicker="Vasoactive-Inotropic Score">
+        <Card title="VIS" kicker="Vasoactive-Inotropic Score" className="clean-card">
           <div className="notice-box">Preencha as doses atuais. Para adrenalina, noradrenalina, dopamina, dobutamina e milrinone use mcg/kg/min. Para vasopressina use UI/kg/min.</div>
           <div className="grid-2 top-gap">
             <NumberField label="Dopamina" value={visValues.dopamina} onChange={(value) => setVisValues((old) => ({ ...old, dopamina: value }))} unit="mcg/kg/min" />
@@ -423,7 +452,7 @@ export function CalcApp() {
       )}
 
       {activeTab === 'protocol' && (
-        <Card title="Protocolo carregado" kicker="Parâmetros fornecidos">
+        <Card title="Protocolo carregado" kicker="Parâmetros fornecidos" className="clean-card">
           <div className="protocol-list">
             {DRUGS.map((item) => (
               <article key={item.id} className="mini-card">

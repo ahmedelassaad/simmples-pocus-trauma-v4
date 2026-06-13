@@ -24,6 +24,27 @@ function routeFromPath() {
   return apps[slug] ? slug : 'home';
 }
 
+function SuiteDock({ active, onOpen }) {
+  return (
+    <nav className="suite-dock" aria-label="Trocar app da SIMM Suite">
+      {Object.entries(apps).map(([slug, app]) => {
+        const Icon = app.icon;
+        return (
+          <button
+            key={slug}
+            type="button"
+            className={active === slug ? 'suite-dock-item suite-dock-active' : 'suite-dock-item'}
+            onClick={() => onOpen(slug)}
+          >
+            <Icon size={16} />
+            <span>{app.title.replace('SIMMples ', '')}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function App() {
   const [route, setRoute] = useState(routeFromPath());
 
@@ -46,6 +67,7 @@ export default function App() {
       <>
         <AppShell title={meta.title} subtitle={meta.subtitle} onBack={() => open('home')}>
           <Current />
+          <SuiteDock active={route} onOpen={open} />
         </AppShell>
         <Toast />
       </>
