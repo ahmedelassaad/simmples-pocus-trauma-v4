@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { AlertTriangle, Calculator, ClipboardList, Syringe } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ClipboardList, Eraser, RotateCcw, Syringe } from 'lucide-react';
 import { Card, Result } from '../components/Layout.jsx';
 import { NumberField, Segmented, SelectField } from '../components/Inputs.jsx';
 import { CopyButton } from '../components/CopyButton.jsx';
@@ -314,6 +314,20 @@ export function CalcApp() {
     vasopressina: ''
   });
 
+  const weightRef = useRef(null);
+  const targetDoseRef = useRef(null);
+  const flowRef = useRef(null);
+  const visRefs = {
+    dopamina: useRef(null),
+    dobutamina: useRef(null),
+    adrenalina: useRef(null),
+    noradrenalina: useRef(null),
+    milrinone: useRef(null),
+    vasopressina: useRef(null)
+  };
+
+  const focusRef = (ref) => window.setTimeout(() => ref.current?.focus(), 40);
+
   const drug = useMemo(() => DRUGS.find((item) => item.id === drugId) || DRUGS[0], [drugId]);
   const weightNumber = toNumber(weight);
   const flowNumber = toNumber(flow);
@@ -335,7 +349,27 @@ export function CalcApp() {
   const currentStatus = !flow ? 'Preencha a vazão atual' : currentDose === null ? 'Dados insuficientes' : currentDose < drug.doseMin ? 'Abaixo da faixa' : currentDose > drug.doseMax ? 'Acima da faixa' : 'Dentro da faixa';
   const targetStatus = targetDoseNumber === null ? 'Selecione ou digite uma dose alvo' : targetDoseNumber < drug.doseMin ? 'Dose alvo abaixo da faixa' : targetDoseNumber > drug.doseMax ? 'Dose alvo acima da faixa' : 'Dose alvo dentro da faixa';
   const targetTone = rangeTone(targetDoseNumber, drug);
-  const applyDose = (dose) => setTargetDose(String(Number(dose.toFixed(4))));
+  const applyDose = (dose) => {
+    setTargetDose(String(Number(dose.toFixed(4))));
+    focusRef(flowRef);
+  };
+  const handleDrugChange = (value) => {
+    setDrugId(value);
+    setFlow('');
+    setTargetDose('');
+    focusRef(weightRef);
+  };
+  const clearDoseAndFlow = () => {
+    setFlow('');
+    setTargetDose('');
+    focusRef(targetDoseRef);
+  };
+  const newPatient = () => {
+    setWeight('');
+    setFlow('');
+    setTargetDose('');
+    focusRef(weightRef);
+  };
 
   const report = `SIMMples Calc — DVA\nDroga: ${drug.name}\nAcesso selecionado: ${access === 'central' ? 'central' : 'periférico'}\nApresentação: ${drug.presentation}\nDiluição padrão: ${drug.dilution}\nConcentração: ${drug.concentrationLabel}\nFaixa usual: ${fmt(drug.doseMin, doseDigits(drug))} a ${fmt(drug.doseMax, doseDigits(drug))} ${drug.doseUnit}\nPeso: ${weight || '--'} kg\nFaixa de vazão calculada: ${flowRange}\nVazão atual: ${flow || '--'} mL/h\nDose estimada pela vazão: ${doseValue}\nDose alvo: ${targetDose || '--'} ${drug.doseUnit}\nVazão para dose alvo: ${targetFlowValue}\n${drug.bolus && bolus ? `Bolus: ${fmt(bolus.minMg,1)}–${fmt(bolus.maxMg,1)} mg = ${fmt(bolus.minMl,1)}–${fmt(bolus.maxMl,1)} mL em ${drug.bolus.minutes} min` : ''}\nObservação: ferramenta consultiva. Conferir protocolo local, diluição, bomba de infusão e dupla checagem.`;
 
@@ -354,6 +388,12 @@ export function CalcApp() {
               </div>
               <span className={`status-pill status-${targetTone}`}>{targetStatus}</span>
             </div>
+            <div className="calc-flow-steps" aria-label="Fluxo do cálculo">
+              <span className="step-done">Droga</span>
+              <span className={weightNumber ? 'step-done' : 'step-active'}>Peso</span>
+              <span className={targetDoseNumber ? 'step-done' : weightNumber ? 'step-active' : ''}>Dose</span>
+              <span className={targetFlow ? 'step-done' : targetDoseNumber ? 'step-active' : ''}>Resultado</span>
+            </div>
             <div className="calc-hero-result">
               <span>Vazão para dose alvo</span>
               <strong>{targetFlowValue}</strong>
@@ -365,7 +405,7 @@ export function CalcApp() {
             </div>
           </section>
           <Card title="Drogas Vasoativas" kicker="Dose ↔ vazão pela diluição padrão" className="clean-card">
-            <SelectField label="Droga" value={drugId} onChange={(value) => { setDrugId(value); setFlow(''); setTargetDose(''); }} options={drugOptions} />
+            <SelectField label="Droga" value={drugId} onChange={handleDrugChange} options={drugOptions} />
             <Segmented value={access} onChange={setAccess} options={accessOptions} />
             <div className="drug-summary top-gap">
               <strong><Syringe size={16} /> {drug.name}</strong>
@@ -379,18 +419,23 @@ export function CalcApp() {
           </Card>
 
           <Card title="Cálculo automático" className="clean-card calc-main-card">
+            <div className="input-flow-hint">Use Enter/Próximo para avançar: peso → dose alvo → vazão atual.</div>
             <div className="grid-2">
-              <NumberField label="Peso" value={weight} onChange={setWeight} unit="kg" placeholder="70" />
-              <NumberField label="Vazão atual" value={flow} onChange={setFlow} unit="mL/h" placeholder="ex: 12" />
+              <NumberField ref={weightRef} label="Peso" value={weight} onChange={setWeight} unit="kg" placeholder="70" onEnter={() => focusRef(targetDoseRef)} />
+              <NumberField ref={targetDoseRef} label={`Dose alvo (${drug.doseUnit})`} value={targetDose} onChange={setTargetDose} unit={drug.doseUnit} placeholder={`${drug.doseMin}`} onEnter={() => focusRef(flowRef)} />
             </div>
             <div className="grid-2 top-gap">
-              <NumberField label={`Dose alvo (${drug.doseUnit})`} value={targetDose} onChange={setTargetDose} unit={drug.doseUnit} placeholder={`${drug.doseMin}`} />
+              <NumberField ref={flowRef} label="Vazão atual" value={flow} onChange={setFlow} unit="mL/h" placeholder="ex: 12" enterKeyHint="done" />
               <Result label="Vazão para dose alvo" value={targetFlowValue} tone={targetTone} helper={targetStatus} />
             </div>
             <div className="dose-shortcuts" aria-label="Atalhos de dose">
               <button type="button" onClick={() => applyDose(drug.doseMin)}>Mínima: {fmt(drug.doseMin, doseDigits(drug))}</button>
               <button type="button" onClick={() => applyDose(midDose)}>Meio: {fmt(midDose, doseDigits(drug))}</button>
               <button type="button" onClick={() => applyDose(drug.doseMax)}>Máxima: {fmt(drug.doseMax, doseDigits(drug))}</button>
+            </div>
+            <div className="calc-action-row">
+              <button type="button" className="secondary-button compact-action" onClick={clearDoseAndFlow}><Eraser size={16} /> Limpar dose/vazão</button>
+              <button type="button" className="secondary-button compact-action" onClick={newPatient}><RotateCcw size={16} /> Novo paciente</button>
             </div>
             {needsWeight(drug) && !weightNumber && <div className="notice-box top-gap">Informe o peso para calcular dose por kg e faixa de vazão.</div>}
             <div className="grid-3 top-gap">
@@ -411,24 +456,27 @@ export function CalcApp() {
           </Card>
 
           <Card title="Tabela de Titulação" className="clean-card">
-            <div className="calc-table-wrap">
-              <table className="calc-table">
-                <thead>
-                  <tr>
-                    <th>Dose</th>
-                    <th>Vazão</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {titrationRows(drug, weightNumber).map((row) => (
-                    <tr key={`${drug.id}-${row.dose}`}>
-                      <td>{fmt(row.dose, doseDigits(drug))} {drug.doseUnit}</td>
-                      <td>{row.flow === null ? 'Informe o peso' : `${fmt(row.flow, flowDigits(row.flow))} mL/h`}</td>
+            <details className="calc-details">
+              <summary>Ver tabela de titulação</summary>
+              <div className="calc-table-wrap top-gap">
+                <table className="calc-table">
+                  <thead>
+                    <tr>
+                      <th>Dose</th>
+                      <th>Vazão</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {titrationRows(drug, weightNumber).map((row) => (
+                      <tr key={`${drug.id}-${row.dose}`}>
+                        <td>{fmt(row.dose, doseDigits(drug))} {drug.doseUnit}</td>
+                        <td>{row.flow === null ? 'Informe o peso' : `${fmt(row.flow, flowDigits(row.flow))} mL/h`}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
             <p className="clinical-text top-gap">{drug.note}</p>
             <CopyButton text={report}>Copiar cálculo / prescrição</CopyButton>
           </Card>
@@ -439,12 +487,12 @@ export function CalcApp() {
         <Card title="VIS" kicker="Vasoactive-Inotropic Score" className="clean-card">
           <div className="notice-box">Preencha as doses atuais. Para adrenalina, noradrenalina, dopamina, dobutamina e milrinone use mcg/kg/min. Para vasopressina use UI/kg/min.</div>
           <div className="grid-2 top-gap">
-            <NumberField label="Dopamina" value={visValues.dopamina} onChange={(value) => setVisValues((old) => ({ ...old, dopamina: value }))} unit="mcg/kg/min" />
-            <NumberField label="Dobutamina" value={visValues.dobutamina} onChange={(value) => setVisValues((old) => ({ ...old, dobutamina: value }))} unit="mcg/kg/min" />
-            <NumberField label="Adrenalina" value={visValues.adrenalina} onChange={(value) => setVisValues((old) => ({ ...old, adrenalina: value }))} unit="mcg/kg/min" />
-            <NumberField label="Noradrenalina" value={visValues.noradrenalina} onChange={(value) => setVisValues((old) => ({ ...old, noradrenalina: value }))} unit="mcg/kg/min" />
-            <NumberField label="Milrinone" value={visValues.milrinone} onChange={(value) => setVisValues((old) => ({ ...old, milrinone: value }))} unit="mcg/kg/min" />
-            <NumberField label="Vasopressina" value={visValues.vasopressina} onChange={(value) => setVisValues((old) => ({ ...old, vasopressina: value }))} unit="UI/kg/min" />
+            <NumberField ref={visRefs.dopamina} label="Dopamina" value={visValues.dopamina} onChange={(value) => setVisValues((old) => ({ ...old, dopamina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.dobutamina)} />
+            <NumberField ref={visRefs.dobutamina} label="Dobutamina" value={visValues.dobutamina} onChange={(value) => setVisValues((old) => ({ ...old, dobutamina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.adrenalina)} />
+            <NumberField ref={visRefs.adrenalina} label="Adrenalina" value={visValues.adrenalina} onChange={(value) => setVisValues((old) => ({ ...old, adrenalina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.noradrenalina)} />
+            <NumberField ref={visRefs.noradrenalina} label="Noradrenalina" value={visValues.noradrenalina} onChange={(value) => setVisValues((old) => ({ ...old, noradrenalina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.milrinone)} />
+            <NumberField ref={visRefs.milrinone} label="Milrinone" value={visValues.milrinone} onChange={(value) => setVisValues((old) => ({ ...old, milrinone: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.vasopressina)} />
+            <NumberField ref={visRefs.vasopressina} label="Vasopressina" value={visValues.vasopressina} onChange={(value) => setVisValues((old) => ({ ...old, vasopressina: value }))} unit="UI/kg/min" enterKeyHint="done" />
           </div>
           <Result label="VIS total" value={fmt(totalVis, 1)} helper="Dopa + dobuta + 100×adrenalina + 100×noradrenalina + 10×milrinone + 10000×vasopressina" />
           <CopyButton text={`SIMMples Calc — VIS\nDopamina: ${visValues.dopamina || 0}\nDobutamina: ${visValues.dobutamina || 0}\nAdrenalina: ${visValues.adrenalina || 0}\nNoradrenalina: ${visValues.noradrenalina || 0}\nMilrinone: ${visValues.milrinone || 0}\nVasopressina: ${visValues.vasopressina || 0}\nVIS total: ${fmt(totalVis, 1)}`}>Copiar VIS</CopyButton>

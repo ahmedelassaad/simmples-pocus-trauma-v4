@@ -1,4 +1,4 @@
-import { Activity, Calculator, Droplets, HeartPulse, Stethoscope, Syringe, Wind } from 'lucide-react';
+import { Ambulance, Biohazard, Calculator, FlaskConical, ScanLine, Syringe, Wind } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AppShell, Card } from './components/Layout.jsx';
 import { Toast } from './components/Toast.jsx';
@@ -11,12 +11,12 @@ import { PocusApp } from './apps/PocusApp.jsx';
 import { APP_IDEAS } from './data/appIdeas.js';
 
 const apps = {
-  gaso: { title: 'SIMMples GASO', subtitle: 'Gasometria arterial estruturada', icon: Droplets, component: GasoApp },
+  gaso: { title: 'SIMMples GASO', subtitle: 'Gasometria arterial estruturada', icon: FlaskConical, component: GasoApp },
   vent: { title: 'SIMMples VENT', subtitle: 'Ventilação mecânica no DE', icon: Wind, component: VentApp },
   calc: { title: 'SIMMples Calc', subtitle: 'DVA, VIS e dose ↔ vazão', icon: Calculator, component: CalcApp },
-  trauma: { title: 'SIMMples TRAUMA', subtitle: 'Hemorragia oculta e choque', icon: Activity, component: TraumaApp },
-  sepse: { title: 'SIMMples SEPSE', subtitle: 'Triagem de gravidade e primeira hora', icon: HeartPulse, component: SepseApp },
-  pocus: { title: 'SIMMples POCUS', subtitle: 'RUSH/choque e laudo rápido', icon: Stethoscope, component: PocusApp }
+  trauma: { title: 'SIMMples TRAUMA', subtitle: 'Hemorragia oculta e choque', icon: Ambulance, component: TraumaApp },
+  sepse: { title: 'SIMMples SEPSE', subtitle: 'Triagem de gravidade e primeira hora', icon: Biohazard, component: SepseApp },
+  pocus: { title: 'SIMMples POCUS', subtitle: 'RUSH/choque e laudo rápido', icon: ScanLine, component: PocusApp }
 };
 
 function routeFromPath() {

@@ -29,3 +29,16 @@ Install command: `npm install`
 Build command: `npm run build`  
 Output directory: `dist`
 
+## SIMM Suite v10 — UX Clínica
+
+Versão baseada na v9, mantendo conteúdo, cálculos e animações do VENT. Melhorias de UX:
+
+- Ícones do menu inferior revisados por tema: Calc, VENT, POCUS, Trauma, GASO e Sepse.
+- SIMMples Calc com fluxo guiado: droga → peso → dose → resultado.
+- Campos numéricos com Enter/Próximo para avançar no mobile.
+- Resultado rápido com etapas visuais e card fixo.
+- Botões de limpar dose/vazão e novo paciente.
+- Tabela de titulação colapsável para reduzir poluição visual.
+- Ajustes de toque, espaçamento e responsividade mobile.
+
+As animações dinâmicas do VENT não foram alteradas.

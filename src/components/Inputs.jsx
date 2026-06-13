@@ -1,23 +1,46 @@
-export function NumberField({ label, value, onChange, unit, placeholder = '', step = 'any', min, max }) {
+import { forwardRef } from 'react';
+
+export const NumberField = forwardRef(function NumberField({
+  label,
+  value,
+  onChange,
+  unit,
+  placeholder = '',
+  step = 'any',
+  min,
+  max,
+  onEnter,
+  enterKeyHint = 'next',
+  autoComplete = 'off'
+}, ref) {
   return (
     <label className="field">
       <span>{label}</span>
       <div className="field-box">
         <input
+          ref={ref}
           type="number"
           inputMode="decimal"
+          enterKeyHint={enterKeyHint}
+          autoComplete={autoComplete}
           value={value}
           placeholder={placeholder}
           step={step}
           min={min}
           max={max}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onEnter) {
+              e.preventDefault();
+              onEnter();
+            }
+          }}
         />
         {unit && <em>{unit}</em>}
       </div>
     </label>
   );
-}
+});
 
 export function SelectField({ label, value, onChange, options }) {
   const selected = options.find((option) => option.value === value);
