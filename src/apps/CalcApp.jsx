@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 
-// Banco de Dados Fundido (Seu Calc Antigo + Backend do Sócio)
+// Banco de Dados Fundido (SIMM)
 const DRUGS = [
   { id: 'noradrenalina', name: 'Noradrenalina', presentation: '4 mg/mL — amp. 4 mL', defaultAmt: 16, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.01, doseMax: 3.0, doseUnit: 'mcg/kg/min', visMultiplier: 100, isWeightBased: true, maxAvpConc: 0.04, pills: [{ text: "SG5% ou SF0.9%" }, { text: "Risco de Necrose Tissular", danger: true }] },
   { id: 'adrenalina', name: 'Adrenalina', presentation: '1 mg/mL — amp. 1 mL', defaultAmt: 10, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.01, doseMax: 1.0, doseUnit: 'mcg/kg/min', visMultiplier: 100, isWeightBased: true, maxAvpConc: 0.04, pills: [{ text: "SG5% ou SF0.9%" }, { text: "CVC Preferencial", danger: true }] },
@@ -19,7 +19,8 @@ function toNumber(value) {
   return number > 0 ? number : 0;
 }
 
-export default function SimmDvaApp() {
+// CORREÇÃO CRÍTICA AQUI: O nome tem que ser exatamente o que o sócio usou (CalcApp)
+export function CalcApp() {
   const [activeTab, setActiveTab] = useState('calc');
   const [access, setAccess] = useState('CVC');
   const [drugId, setDrugId] = useState('noradrenalina');
@@ -37,7 +38,6 @@ export default function SimmDvaApp() {
 
   const drug = useMemo(() => DRUGS.find((item) => item.id === drugId) || DRUGS[0], [drugId]);
 
-  // Carrega diluição padrão ao mudar de droga
   useEffect(() => {
     setAmt(String(drug.defaultAmt));
     setVol(String(drug.defaultVol));
@@ -51,23 +51,20 @@ export default function SimmDvaApp() {
   const targetDoseNum = toNumber(targetDose);
   const flowNum = toNumber(flow);
 
-  // Motor Matemático Core
   const workConc = useMemo(() => {
     if (volNum <= 0 || amtNum <= 0) return 0;
-    const baseConc = amtNum / volNum; // mg/mL ou UI/mL
+    const baseConc = amtNum / volNum; 
     if (drug.unitAmt === 'UI' || drug.doseKind === 'mgKgH') return baseConc;
-    return baseConc * 1000; // mcg/mL
+    return baseConc * 1000; 
   }, [amtNum, volNum, drug]);
 
-  // 1. O que corre na bomba (Cálculo Reverso)
   const currentDose = useMemo(() => {
     if (workConc === 0 || flowNum === 0) return null;
     if (drug.doseKind === 'mgKgH') return weightNum ? (flowNum * workConc) / weightNum : null;
     if (drug.isWeightBased) return weightNum ? (flowNum * workConc) / (weightNum * 60) : null;
-    return (flowNum * workConc) / 60; // mcg/min ou UI/min
+    return (flowNum * workConc) / 60; 
   }, [workConc, flowNum, weightNum, drug]);
 
-  // 2. Qual vazão colocar (Cálculo Alvo)
   const targetFlow = useMemo(() => {
     if (workConc === 0 || targetDoseNum === 0) return null;
     if (drug.doseKind === 'mgKgH') return weightNum ? (targetDoseNum * weightNum) / workConc : null;
@@ -75,13 +72,11 @@ export default function SimmDvaApp() {
     return (targetDoseNum * 60) / workConc;
   }, [workConc, targetDoseNum, weightNum, drug]);
 
-  // Semáforo e Alertas Clínicos
   let doseColor = "var(--text-secondary)";
   let dosePercent = 0;
   let statusText = "Aguardando Dose";
   let alertWarning = null;
 
-  // Analisa a dose que está digitada (ou a atual ou a alvo) para dar feedback visual
   const analyzedDose = targetDoseNum > 0 ? targetDoseNum : (currentDose || 0);
 
   if (analyzedDose > 0) {
@@ -93,21 +88,18 @@ export default function SimmDvaApp() {
     else { doseColor = "var(--accent-red)"; statusText = "Dose Acima do Teto"; alertWarning = "Dose Teto Ultrapassada."; }
   }
 
-  // Alerta de Acesso Periférico (Concentração Base = amt/vol)
   if (access === 'AVP' && volNum > 0) {
     const baseConc = amtNum / volNum;
     if (drug.maxAvpConc === 0) { alertWarning = "Contraindicado em Acesso Periférico"; doseColor = "var(--accent-red)"; }
     else if (baseConc > drug.maxAvpConc && drug.maxAvpConc !== 999) { alertWarning = `Alta Conc. Periférica (Max: ${drug.maxAvpConc})`; }
   }
 
-  // Escore VIS (Cálculo Dinâmico c/ Failsafe)
   const totalVis = useMemo(() => {
     const dopa = toNumber(visValues.dopamina); const dobuta = toNumber(visValues.dobutamina);
     const epi = toNumber(visValues.adrenalina); const norepi = toNumber(visValues.noradrenalina);
     const milrinone = toNumber(visValues.milrinona);
-    
     const vasoUImin = toNumber(visValues.vasopressina);
-    const vasoKGmin = weightNum ? (vasoUImin / weightNum) : 0; // Transforma UI/min em UI/kg/min
+    const vasoKGmin = weightNum ? (vasoUImin / weightNum) : 0;
 
     return dopa + dobuta + (100 * epi) + (100 * norepi) + (10 * milrinone) + (10000 * vasoKGmin);
   }, [visValues, weightNum]);
@@ -169,12 +161,16 @@ export default function SimmDvaApp() {
         .nav-item.active { color: var(--brand-cyan); }
         .nav-item svg { width: 20px; height: 20px; stroke-width: 2; }
         .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        
+        .tab-fade { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
       <div className="simm-app">
         <div className="top-bar">
           <div className="brand-cluster">
-            <img src="./Logo_1.121-ezgif.com-resize.png" alt="SIMM" className="app-logo" />
+            {/* Pode usar o seu logo aqui se a imagem existir no seu projeto */}
+            <img src="./Logo_1.121-ezgif.com-resize.png" alt="SIMM" className="app-logo" style={{display: 'none'}} />
             <div className="app-title">SIMMples DVA</div>
           </div>
           {totalVis > 0 && (
@@ -184,19 +180,180 @@ export default function SimmDvaApp() {
           )}
         </div>
 
-        <div className="toggle-container">
-          <div className={`toggle-btn ${access === 'CVC' ? 'active' : ''}`} onClick={() => setAccess('CVC')}>Acesso Central</div>
-          <div className={`toggle-btn ${access === 'AVP' ? 'active' : ''}`} onClick={() => setAccess('AVP')}>Acesso Periférico</div>
-          <div className="toggle-slider" style={{ transform: access === 'CVC' ? 'translateX(0)' : 'translateX(100%)' }}></div>
-        </div>
+        {/* ABA 1: CALCULADORA DE INFUSÃO */}
+        {activeTab === 'calc' && (
+          <div className="tab-fade">
+            <div className="toggle-container">
+              <div className={`toggle-btn ${access === 'CVC' ? 'active' : ''}`} onClick={() => setAccess('CVC')}>Acesso Central</div>
+              <div className={`toggle-btn ${access === 'AVP' ? 'active' : ''}`} onClick={() => setAccess('AVP')}>Acesso Periférico</div>
+              <div className="toggle-slider" style={{ transform: access === 'CVC' ? 'translateX(0)' : 'translateX(100%)' }}></div>
+            </div>
 
-        <div className="input-group">
-          <span className="input-label">Droga Vasoativa</span>
-          <select value={drugId} onChange={(e) => setDrugId(e.target.value)}>
-            {DRUGS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
+            <div className="input-group">
+              <span className="input-label">Droga Vasoativa</span>
+              <select value={drugId} onChange={(e) => setDrugId(e.target.value)}>
+                {DRUGS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
 
-        <div className="info-pills">
-          {drug.pills.map((p, i) => (
-            <div key={i} className={`pill ${p.danger ? 'danger'
+            <div className="info-pills">
+              {drug.pills.map((p, i) => (
+                <div key={i} className={`pill ${p.danger ? 'danger' : ''}`}>{p.text}</div>
+              ))}
+            </div>
+
+            <div className="grid-2">
+              <div className={`input-group ${!drug.isWeightBased ? 'disabled' : ''}`}>
+                <span className="input-label">Peso Corporal</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={weight} onChange={e => setWeight(e.target.value)} />
+                  <span className="unit">kg</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="section-title">Diluição (Personalizável)</div>
+            <div className="grid-2">
+              <div className="input-group">
+                <span className="input-label">Quantidade ({drug.unitAmt})</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={amt} onChange={e => setAmt(e.target.value)} />
+                  <span className="unit">{drug.unitAmt}</span>
+                </div>
+              </div>
+              <div className="input-group">
+                <span className="input-label">Volume do Soro</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={vol} onChange={e => setVol(e.target.value)} />
+                  <span className="unit">mL</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="section-title">Parâmetros de Infusão</div>
+            
+            <div className="grid-2">
+              <div className="input-group">
+                <span className="input-label">Dose Alvo</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={targetDose} onChange={e => { setTargetDose(e.target.value); setFlow(''); }} placeholder={String(drug.doseMin)} />
+                </div>
+                <span className="unit" style={{marginLeft: 0, marginTop: '4px', display: 'block'}}>{drug.doseUnit}</span>
+              </div>
+              <div className="input-group">
+                <span className="input-label">Vazão Atual</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={flow} onChange={e => { setFlow(e.target.value); setTargetDose(''); }} placeholder="Ex: 10" />
+                  <span className="unit">mL/h</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="result-zone">
+              <div className="result-unit-text">Resultado Clínico</div>
+              {targetDoseNum > 0 ? (
+                 <div className="result-value">{targetFlow !== null ? targetFlow.toFixed(1) : '--'} <span style={{fontSize: '14px', color: 'var(--text-secondary)'}}>mL/h</span></div>
+              ) : (
+                 <div className="result-value">{currentDose !== null ? currentDose.toFixed(3) : '--'} <span style={{fontSize: '14px', color: 'var(--text-secondary)'}}>{drug.doseUnit}</span></div>
+              )}
+              
+              <div className="status-bar-container">
+                <div className="status-bar-fill" style={{ width: `${dosePercent}%`, backgroundColor: doseColor }}></div>
+              </div>
+              <div className="result-unit-text" style={{ color: doseColor }}>{statusText}</div>
+
+              {alertWarning && (
+                <div className="alert-box">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {alertWarning}
+                </div>
+              )}
+            </div>
+
+            <button className="btn-primary" onClick={copyPrescription}>Copiar Prescrição</button>
+          </div>
+        )}
+
+        {/* ABA 2: ESCORE VIS */}
+        {activeTab === 'vis' && (
+          <div className="tab-fade">
+            <div className="section-title">Vasoactive-Inotropic Score (VIS)</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+              Insira as taxas de infusão atuais (em mcg/kg/min ou UI/min) para determinação do prognóstico de choque.
+            </div>
+
+            <div className="grid-2">
+              <div className="input-group">
+                <span className="input-label">Noradrenalina</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={visValues.noradrenalina} onChange={e => setVisValues({ ...visValues, noradrenalina: e.target.value })} placeholder="0.0" />
+                </div>
+              </div>
+              <div className="input-group">
+                <span className="input-label">Adrenalina</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={visValues.adrenalina} onChange={e => setVisValues({ ...visValues, adrenalina: e.target.value })} placeholder="0.0" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid-2">
+              <div className="input-group">
+                <span className="input-label">Vasopressina</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={visValues.vasopressina} onChange={e => setVisValues({ ...visValues, vasopressina: e.target.value })} placeholder="0.0" />
+                </div>
+              </div>
+              <div className="input-group">
+                <span className="input-label">Dobutamina</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={visValues.dobutamina} onChange={e => setVisValues({ ...visValues, dobutamina: e.target.value })} placeholder="0.0" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid-2">
+              <div className="input-group">
+                <span className="input-label">Milrinona</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={visValues.milrinona} onChange={e => setVisValues({ ...visValues, milrinona: e.target.value })} placeholder="0.0" />
+                </div>
+              </div>
+              <div className="input-group">
+                <span className="input-label">Dopamina</span>
+                <div className="input-wrapper">
+                  <input type="number" inputMode="numeric" value={visValues.dopamina} onChange={e => setVisValues({ ...visValues, dopamina: e.target.value })} placeholder="0.0" />
+                </div>
+              </div>
+            </div>
+
+            <div className="result-zone">
+              <div className="result-unit-text">Score Computado</div>
+              <div className="result-value" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--brand-cyan)' }}>{totalVis.toFixed(1)}</div>
+              <div className="status-bar-container">
+                <div className="status-bar-fill" style={{ width: `${Math.min((totalVis / 40) * 100, 100)}%`, backgroundColor: totalVis > 15 ? 'var(--accent-red)' : 'var(--brand-cyan)' }}></div>
+              </div>
+              <div className="result-unit-text" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--text-secondary)', marginTop: '8px' }}>
+                {totalVis > 15 ? "Alto Impacto na Mortalidade Relativa" : "Suporte Hemodinâmico Otimizado"}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* NAVEGAÇÃO INFERIOR */}
+      <div className="bottom-nav">
+        <div className="nav-container">
+          <div className={`nav-item ${activeTab === 'calc' ? 'active' : ''}`} onClick={() => setActiveTab('calc')}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><line x1="8" y1="10" x2="16" y2="10" /><line x1="8" y1="14" x2="16" y2="14" /><line x1="12" y1="8" x2="12" y2="16" /></svg>
+            <span className="nav-label">Infusão</span>
+          </div>
+          <div className={`nav-item ${activeTab === 'vis' ? 'active' : ''}`} onClick={() => setActiveTab('vis')}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+            <span className="nav-label">Score VIS</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
