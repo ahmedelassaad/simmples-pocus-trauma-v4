@@ -1,33 +1,29 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 
+// Banco de Dados unificado e revisado
 const DRUGS = [
-  { id: 'noradrenalina', name: 'Noradrenalina', presentation: '4 mg/mL — ampola 4 mL', defaultAmt: 16, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.01, doseMax: 3.0, doseUnit: 'mcg/kg/min', visMultiplier: 100, isWeightBased: true, maxAvpConc: 0.04, chartSteps: [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 3.0], pills: [{ text: "SG5% ou SF0.9%" }, { text: "Risco de Necrose Tissular", danger: true }], note: 'Nesta diluição, cada 1 mL/h corresponde a 1 mcg/min. Dose em mcg/kg/min = vazão ÷ peso.' },
+  { id: 'noradrenalina', name: 'Noradrenalina', presentation: '4 mg/mL — ampola 4 mL', defaultAmt: 16, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.01, doseMax: 3.0, doseUnit: 'mcg/kg/min', visMultiplier: 100, isWeightBased: true, maxAvpConc: 0.04, chartSteps: [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 3.0], pills: [{ text: "SG5% ou SF0.9%" }, { text: "Risco de Necrose Tissular", danger: true }], note: 'Nesta diluição, cada 1 mL/h corresponds a 1 mcg/min. Dose em mcg/kg/min = vazão ÷ peso.' },
   { id: 'adrenalina', name: 'Adrenalina', presentation: '1 mg/mL — ampola 1 mL', defaultAmt: 10, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.01, doseMax: 1.0, doseUnit: 'mcg/kg/min', visMultiplier: 100, isWeightBased: true, maxAvpConc: 0.04, chartSteps: [0.01, 0.05, 0.1, 0.2, 0.5, 1.0], pills: [{ text: "SG5% ou SF0.9%" }, { text: "CVC Preferencial", danger: true }], note: 'Nesta diluição, cada 1 mL/h corresponde a 1 mcg/min.' },
   { id: 'vasopressina', name: 'Vasopressina', presentation: '20 UI/mL — ampola 1 mL', defaultAmt: 40, defaultVol: 100, unitAmt: 'UI', doseKind: 'uiMin', doseMin: 0.01, doseMax: 0.06, doseUnit: 'UI/min', visMultiplier: 10000, isWeightBased: false, maxAvpConc: 0, chartSteps: [0.01, 0.02, 0.03, 0.04, 0.06], pills: [{ text: "SF0.9% Preferencial" }, { text: "CVC Obrigatório", danger: true }], note: 'Dose usual informada: 0,01 a 0,04 UI/min, equivalente a aproximadamente 3 a 12 mL/h nesta diluição.' },
   { id: 'dopamina', name: 'Dopamina', presentation: '5 mg/mL — ampola 10 mL', defaultAmt: 250, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 2.0, doseMax: 20.0, doseUnit: 'mcg/kg/min', visMultiplier: 1, isWeightBased: true, maxAvpConc: 3.2, chartSteps: [2.0, 5.0, 10.0, 15.0, 20.0], pills: [{ text: "SG5% ou SF0.9%" }, { text: "Incompatível c/ Bicarbonato", danger: true }], note: 'Dose usual informada: 5 a 20 mcg/kg/min.' },
   { id: 'dobutamina', name: 'Dobutamina', presentation: '12,5 mg/mL — ampola 20 mL', defaultAmt: 250, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 2.5, doseMax: 20.0, doseUnit: 'mcg/kg/min', visMultiplier: 1, isWeightBased: true, maxAvpConc: 2.0, chartSteps: [2.5, 5.0, 10.0, 15.0, 20.0], pills: [{ text: "SG5% ou SF0.9%" }], note: 'Dose usual informada: 2,5 a 20 mcg/kg/min.' },
-  { id: 'milrinona', name: 'Milrinona', presentation: '1 mg/mL — ampola 20 mL', defaultAmt: 20, defaultVol: 100, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.125, maxDose: 0.75, doseUnit: 'mcg/kg/min', visMultiplier: 10, isWeightBased: true, maxAvpConc: 999, chartSteps: [0.125, 0.25, 0.375, 0.5, 0.75], pills: [{ text: "SG5% ou SF0.9%" }, { text: "Ajustar na Lesão Renal", danger: true }], note: 'Dose usual informada: 0,375 a 0,75 mcg/kg/min.' },
+  { id: 'milrinona', name: 'Milrinona', presentation: '1 mg/mL — ampola 20 mL', defaultAmt: 20, defaultVol: 100, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.125, doseMax: 0.75, doseUnit: 'mcg/kg/min', visMultiplier: 10, isWeightBased: true, maxAvpConc: 999, chartSteps: [0.125, 0.25, 0.375, 0.5, 0.75], pills: [{ text: "SG5% ou SF0.9%" }, { text: "Ajustar na Lesão Renal", danger: true }], note: 'Dose usual informada: 0,375 a 0,75 mcg/kg/min.' },
   { id: 'nitroprussiato', name: 'Nitroprussiato de sódio', presentation: '25 mg/mL — ampola 2 mL', defaultAmt: 50, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.3, doseMax: 10.0, doseUnit: 'mcg/kg/min', visMultiplier: 0, isWeightBased: true, maxAvpConc: 999, chartSteps: [0.3, 0.5, 1.0, 3.0, 5.0, 10.0], pills: [{ text: "Apenas SG5%" }, { text: "Fotossensível", danger: true }], note: 'Dose usual informada: 0,3 a 10 mcg/kg/min.' },
   { id: 'nitroglicerina', name: 'Nitroglicerina', presentation: '5 mg/mL — ampola 5/10 mL', defaultAmt: 50, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgMin', doseMin: 5, doseMax: 200, doseUnit: 'mcg/min', visMultiplier: 0, isWeightBased: false, maxAvpConc: 999, chartSteps: [5, 10, 20, 50, 100, 200], pills: [{ text: "SG5% ou SF0.9%" }, { text: "Frasco de Vidro", danger: true }], note: 'Dose usual informada: 5 a 200 mcg/min.' },
   { id: 'esmolol', name: 'Esmolol', presentation: '10 mg/mL — ampola 10 mL', defaultAmt: 2500, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 50, doseMax: 300, doseUnit: 'mcg/kg/min', visMultiplier: 0, isWeightBased: true, maxAvpConc: 10.0, chartSteps: [50, 100, 150, 200, 300], pills: [{ text: "SG5% ou SF0.9%" }], note: 'Dose usual informada: 50 a 300 mcg/kg/min.' },
   { id: 'azul_metileno', name: 'Azul de Metileno', presentation: '10 mg/mL — ampola 10 mL', defaultAmt: 100, defaultVol: 500, unitAmt: 'mg', doseKind: 'mgKgH', doseMin: 0.25, doseMax: 2.0, doseUnit: 'mg/kg/h', visMultiplier: 0, isWeightBased: true, maxAvpConc: 999, chartSteps: [0.25, 0.5, 1.0, 1.5, 2.0], bolus: { min: 1.5, max: 2, unit: 'mg/kg', minutes: 10 }, pills: [{ text: "SG5 Exclusivo" }, { text: "Risco Serotoninérgico", danger: true }], note: 'Dose usual informada: bolus 1,5 a 2 mg/kg em 10 min; contínuo 0,5 a 4 mg/kg/h.' }
 ];
 
-// Conversor interno: Transforma a vírgula do input no ponto que a matemática exige
 function toNumber(value) {
   if (!value) return 0;
   const number = parseFloat(String(value).replace(',', '.'));
   return isNaN(number) ? 0 : number;
 }
 
-// Máscara UX de Vírgula Universal
 const formatDecimal = (val) => {
   if (!val) return '';
-  // Transforma ponto em vírgula instantaneamente
   let cleaned = val.replace(/\./g, ',');
-  // Remove qualquer letra ou símbolo (deixa só número e vírgula)
   cleaned = cleaned.replace(/[^0-9,]/g, '');
-  // Impede duas vírgulas no mesmo número
   const parts = cleaned.split(',');
   if (parts.length > 2) {
     cleaned = parts[0] + ',' + parts.slice(1).join('');
@@ -40,11 +36,11 @@ export function CalcApp() {
   const [access, setAccess] = useState('CVC');
   const [drugId, setDrugId] = useState('noradrenalina');
   
+  // Valores iniciais preenchidos para evitar tela vazia no primeiro carregamento
   const [weight, setWeight] = useState('70');
-  const [amt, setAmt] = useState('');
-  const [vol, setVol] = useState('');
-  
-  const [targetDose, setTargetDose] = useState('');
+  const [amt, setAmt] = useState('16');
+  const [vol, setVol] = useState('250');
+  const [targetDose, setTargetDose] = useState('0,01');
   const [flow, setFlow] = useState('');
   
   const [visValues, setVisValues] = useState({ dopamina: '', dobutamina: '', adrenalina: '', noradrenalina: '', milrinona: '', vasopressina: '' });
@@ -55,11 +51,11 @@ export function CalcApp() {
 
   const drug = useMemo(() => DRUGS.find((item) => item.id === drugId) || DRUGS[0], [drugId]);
 
+  // ENGINE DE PREENCHIMENTO AUTOMÁTICO - Roda ao trocar o medicamento
   useEffect(() => {
-    // Ao trocar a droga, preenchemos os padrões usando o formatDecimal para garantir o formato correto (caso seja decimal)
     setAmt(formatDecimal(String(drug.defaultAmt)));
     setVol(formatDecimal(String(drug.defaultVol)));
-    setTargetDose('');
+    setTargetDose(formatDecimal(String(drug.doseMin))); // Preenche automaticamente com a dose de segurança inicial
     setFlow('');
   }, [drug]);
 
@@ -82,6 +78,7 @@ export function CalcApp() {
     return baseConc * 1000; 
   }, [amtNum, volNum, drug]);
 
+  // Cálculo Reverso (Bomba -> Dose)
   const currentDose = useMemo(() => {
     if (workConc === 0 || flowNum === 0) return null;
     if (drug.doseKind === 'mgKgH') return weightNum ? (flowNum * workConc) / weightNum : null;
@@ -89,10 +86,11 @@ export function CalcApp() {
     return (flowNum * workConc) / 60; 
   }, [workConc, flowNum, weightNum, drug]);
 
+  // Cálculo de Alvo (Dose -> Bomba)
   const targetFlow = useMemo(() => {
     if (workConc === 0 || targetDoseNum === 0) return null;
-    if (drug.doseKind === 'mgKgH') return weightNum ? (targetDoseNum * workConc) : null;
-    if (drug.isWeightBased) return weightNum ? (targetDoseNum * weightNum * 60) / workConc : null;
+    if (drug.doseKind === 'mgKgH') return workConc > 0 ? (targetDoseNum * weightNum) / workConc : null;
+    if (drug.isWeightBased) return workConc > 0 ? (targetDoseNum * weightNum * 60) / workConc : null;
     return (targetDoseNum * 60) / workConc;
   }, [workConc, targetDoseNum, weightNum, drug]);
 
@@ -110,7 +108,7 @@ export function CalcApp() {
     if (workConc === 0) return [];
     return drug.chartSteps.map((step) => {
       let requiredRate = 0;
-      if (drug.doseKind === 'mgKgH') requiredRate = weightNum ? (step * weightNum) / (workConc) : 0;
+      if (drug.doseKind === 'mgKgH') requiredRate = workConc > 0 ? (step * weightNum) / workConc : 0;
       else if (drug.isWeightBased) requiredRate = weightNum ? (step * weightNum * 60) / workConc : 0;
       else requiredRate = (step * 60) / workConc;
       return { dose: step, flow: requiredRate };
@@ -126,8 +124,7 @@ export function CalcApp() {
   const analyzedDose = targetDoseNum > 0 ? targetDoseNum : (currentDose || 0);
 
   if (analyzedDose > 0) {
-    let topLimit = drug.id === 'noradrenalina' ? drug.doseMax : drug.doseMax;
-    dosePercent = (analyzedDose / topLimit) * 100;
+    dosePercent = (analyzedDose / drug.doseMax) * 100;
     if (dosePercent > 100) dosePercent = 100;
     
     if (analyzedDose < drug.doseMin) { doseColor = "var(--accent-yellow)"; statusText = "Subdose Protocolar"; }
@@ -150,8 +147,10 @@ export function CalcApp() {
     return dopa + dobuta + (100 * epi) + (100 * norepi) + (10 * milrinone) + (10000 * vasoKGmin);
   }, [visValues, weightNum]);
 
-  // Função para formatar os resultados do relatório com vírgula
-  const formatReportNumber = (num, digits = 1) => String(num.toFixed(digits)).replace('.', ',');
+  const formatReportNumber = (num, digits = 1) => {
+    if (num === null || num === undefined || isNaN(num)) return '--';
+    return String(num.toFixed(digits)).replace('.', ',');
+  };
 
   const copyPrescription = () => {
     const report = `RELATÓRIO CLÍNICO - INFUSÕES CRÍTICAS\n\nDroga Utilizada: ${drug.name}\nPeso Operacional: ${weight || '--'} kg\nAcesso Disponível: ${access === 'CVC' ? 'Via Central' : 'Via Periférica'}\nMontagem da Solução: ${amt} ${drug.unitAmt} em ${vol} mL\n\nParâmetros Ajustados:\n• Vazão da Bomba: ${flow || (targetFlow ? formatReportNumber(targetFlow) : '--')} mL/h\n• Entrega de Dose: ${currentDose ? formatReportNumber(currentDose, doseDigits) : (targetDose || '--')} ${drug.doseUnit}\n\n[SIMMples DVA - Dashboard de Elite]`;
@@ -176,7 +175,6 @@ export function CalcApp() {
         
         .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .brand-block { display: flex; align-items: center; gap: 10px; }
-        .app-logo { width: 34px; height: 36px; border-radius: 50%; border: 1px solid var(--brand-cyan); }
         .app-title { font-size: 19px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
         .app-title span { color: var(--brand-cyan); }
         
@@ -195,7 +193,6 @@ export function CalcApp() {
         .input-box.disabled { opacity: 0.25; pointer-events: none; }
         .input-label { font-size: 9px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 5px; display: block; font-weight: 700; letter-spacing: 0.3px; }
         .input-wrapper { display: flex; align-items: baseline; }
-        /* Alterado input de number para text suportar a máscara customizada */
         .simm-wrapper select, .simm-wrapper input[type="text"] { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: 17px; font-weight: 700; outline: none; appearance: none; }
         .simm-wrapper select option { background: #020A1A; color: #fff; }
         .unit-tag { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-left: 4px; }
@@ -225,7 +222,6 @@ export function CalcApp() {
         .premium-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         .premium-table th { font-weight: 800; color: var(--brand-cyan); text-align: left; padding: 10px; border-bottom: 1px solid rgba(0, 201, 232, 0.15); text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; }
         .premium-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-primary); font-size: 13px; font-variant-numeric: tabular-nums; }
-        .premium-table tr:hover { background: rgba(255,255,255,0.01); }
 
         .bottom-suite-nav { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; background: var(--nav-bg); border-top: 1px solid rgba(0, 201, 232, 0.15); padding-bottom: env(safe-area-inset-bottom); z-index: 100; backdrop-filter: blur(10px); }
         .nav-shell { display: flex; width: 100%; max-width: 460px; }
@@ -259,7 +255,7 @@ export function CalcApp() {
             <div className={`toggle-btn ${activeTab === 'vis' ? 'active' : ''}`} onClick={() => setActiveTab('vis')}>Score VIS</div>
           </div>
 
-          {/* ABA 1: CÁLCULOS E ESPECIFICAÇÕES */}
+          {/* ABA 1: CALCULADORA DE INFUSÃO */}
           {activeTab === 'calc' && (
             <div className="fade-engine">
               <div className="section-title">1. Seleção e Via de Acesso</div>
@@ -333,7 +329,7 @@ export function CalcApp() {
                 {targetDoseNum > 0 ? (
                    <div className="display-value">{targetFlow !== null ? formatReportNumber(targetFlow) : '--'}<span style={{fontSize: '16px', fontWeight: '500', marginLeft: '4px'}}>mL/h</span></div>
                 ) : (
-                   <div className="display-value">{currentDose !== null ? formatReportNumber(currentDose, doseDigits) : '--'}<span style={{fontSize: '14px', fontWeight: '500', marginLeft: '4px'}}>{drug.doseKind === 'uiMin' ? 'UI/min' : 'mcg/kg/min'}</span></div>
+                   <div className="display-value">{currentDose !== null ? formatReportNumber(currentDose, doseDigits) : '--'}<span style={{fontSize: '14px', fontWeight: '500', marginLeft: '4px'}}>{drug.doseUnit}</span></div>
                 )}
                 
                 <div className="premium-progress-track">
