@@ -35,10 +35,17 @@ export const NumberField = forwardRef(function NumberField({
             onChange(accepted);
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && onEnter) {
-              e.preventDefault();
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            if (onEnter) {
               onEnter();
+              return;
             }
+            const fields = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea, button'))
+              .filter((element) => !element.disabled && element.tabIndex !== -1 && element.offsetParent !== null);
+            const index = fields.indexOf(e.currentTarget);
+            const next = fields[index + 1];
+            if (next?.focus) next.focus();
           }}
         />
         {unit && <em>{unit}</em>}

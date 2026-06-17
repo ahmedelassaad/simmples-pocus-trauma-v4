@@ -96,6 +96,11 @@ export function IamApp() {
         <div className="micro-card-grid">
           {omiPatterns.map((item) => <article className="mini-card" key={item.name}><strong><HeartPulse size={15}/>{item.name}</strong><small>{item.text}</small></article>)}
         </div>
+        <div className="ecg-pearls-grid top-gap">
+          <div className="ecg-pearl"><span>Olhe primeiro</span><strong>Derivações contíguas, recíprocas e padrão global do ST-T antes de focar só no supra clássico.</strong></div>
+          <div className="ecg-pearl"><span>Armadilha</span><strong>ECG “sem supra clássico” não exclui oclusão. Posterior, De Winter, Wellens e Aslanger podem ser perdidos.</strong></div>
+          <div className="ecg-pearl"><span>Pérola prática</span><strong>Se o padrão sugerir OMI, integre com dor, troponina seriada, eco/POCUS e ECGs seriados.</strong></div>
+        </div>
         <div className="notice-box top-gap"><AlertTriangle size={15}/> Use junto ao SIMMples ECG para ver curvas dinâmicas dos padrões.</div>
       </Card>}
       {tab === 'relatorio' && <Card className="compact-card" title="Resumo copiável">

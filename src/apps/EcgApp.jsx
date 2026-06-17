@@ -310,6 +310,40 @@ const ECG_PATTERNS = [
   }
 ];
 
+
+
+const ECG_PEARLS = {
+  'sinus': { firstLook: 'Confirme P antes de cada QRS, regularidade e PR constante.', pitfall: 'Taquicardia sinusal com P escondida pode confundir com TSV se a FC estiver alta.', action: 'Use como padrão de comparação para repolarização e progressão de R.' },
+  'sinus-brady': { firstLook: 'Olhe FC, relação P-QRS e sintomas/instabilidade.', pitfall: 'Bradicardia sinusal não exclui IAM inferior, drogas nodais ou hipercalemia.', action: 'Correlacione com perfusão e causas reversíveis.' },
+  'first-avb': { firstLook: 'Meça o PR em DII ou V5 em mais de um ciclo.', pitfall: 'PR discretamente longo pode passar despercebido se o papel visual estiver corrido.', action: 'Contextualize com medicações, vagotonia e doença de condução.' },
+  'mobitz1': { firstLook: 'Procure alongamento progressivo do PR antes da pausa.', pitfall: 'Condução 2:1 pode esconder Wenckebach.', action: 'Observe estabilidade e contexto de IAM inferior ou drogas.' },
+  'mobitz2': { firstLook: 'P bloqueada súbita com PR fixo nos batimentos conduzidos.', pitfall: 'Pode ser confundido com Wenckebach se poucos ciclos forem vistos.', action: 'Valorize como bloqueio de maior risco, especialmente com QRS largo.' },
+  'complete-avb': { firstLook: 'Dissociação AV: P e QRS marchando independentemente.', pitfall: 'Batimentos de escape podem mascarar a gravidade se a FC não estiver muito baixa.', action: 'Checar perfusão e considerar pacing conforme contexto.' },
+  'afib': { firstLook: 'Irregularmente irregular e sem P organizada.', pitfall: 'Extras frequentes podem simular irregularidade se o traçado for curto.', action: 'Avalie QRS largo, pré-excitação, frequência e instabilidade.' },
+  'flutter': { firstLook: 'Ondas F serrilhadas em DII, DIII, aVF e V1.', pitfall: 'Condução 2:1 pode parecer TSV regular de ~150 bpm.', action: 'Busque relação A:V e resposta ventricular.' },
+  'svt': { firstLook: 'Ritmo regular, geralmente estreito e muito rápido.', pitfall: 'TSV pode esconder ondas P retrógradas e parecer apenas taquicardia sinusal intensa.', action: 'Diferencie de flutter 2:1 e taquicardia atrial.' },
+  'vt': { firstLook: 'Assuma TV até prova em contrário em taquicardia regular de QRS largo.', pitfall: 'Aberrância pode confundir, mas o erro seguro é tratar como TV.', action: 'Procure dissociação AV, capturas/fusões e estabilidade hemodinâmica.' },
+  'vf': { firstLook: 'Atividade caótica sem QRS organizado nem linha de base estável.', pitfall: 'Artefato grosseiro pode simular FV; confirme no contexto de PCR.', action: 'Ritmo chocável: reconhecer rápido e seguir algoritmo de PCR.' },
+  'torsades': { firstLook: 'Polimorfismo com amplitude que gira em torno da linha de base.', pitfall: 'TV polimórfica sem QT longo pode parecer semelhante.', action: 'Pense em QT prolongado, eletrólitos e drogas desencadeantes.' },
+  'stemi-anterior': { firstLook: 'V2–V4/V5 com supra e T hiperagudas.', pitfall: 'Repolarização precoce e pericardite entram no diferencial.', action: 'Correlacione com dor, recíprocas e progressão de R.' },
+  'stemi-inferior': { firstLook: 'DII, DIII e aVF com supra; DIII>DII sugere RCA.', pitfall: 'Supra discreto inferior pode ser subestimado sem recíprocas em DI/aVL.', action: 'Lembre de VD e parede posterior.' },
+  'posterior': { firstLook: 'Infra horizontal V1–V3 com R alto e T positiva.', pitfall: 'Pode ser interpretado como isquemia subendocárdica anterior comum.', action: 'Registre V7–V9 se possível.' },
+  'de-winter': { firstLook: 'Infra ascendente precordial + T altas e simétricas.', pitfall: 'Sem supra clássico, pode atrasar reconhecimento de oclusão.', action: 'Trate como equivalente de OMI.' },
+  'wellens-a': { firstLook: 'T bifásica em V2–V3, muitas vezes após melhora da dor.', pitfall: 'O ECG pode parecer “melhorando” quando na verdade indica DA crítica.', action: 'Evite teste ergométrico; alto risco de IAM anterior.' },
+  'wellens-b': { firstLook: 'T profundamente invertida e simétrica em V2–V4.', pitfall: 'Pode ser lido apenas como alteração inespecífica de repolarização.', action: 'Contexto de dor recente resolvida é essencial.' },
+  'aslanger': { firstLook: 'Supra isolado em DIII com infra lateral e V1>V2.', pitfall: 'Não cumprir STEMI clássico não exclui oclusão.', action: 'Integre o conjunto do traçado e a clínica.' },
+  'south-african-flag': { firstLook: 'I, aVL e V2 com supra e recíproca inferior.', pitfall: 'Foco apenas nas precordiais pode perder o padrão lateral alto.', action: 'Pense em oclusão diagonal/lateral alta.' },
+  'left-main': { firstLook: 'aVR com supra e infra difuso em múltiplos territórios.', pitfall: 'Não é diagnóstico exclusivo de tronco; pode ser mismatch oferta-demanda.', action: 'Valorize gravidade clínica e contexto hemodinâmico.' },
+  'hyperacute': { firstLook: 'T amplas, volumosas e desproporcionais ao QRS.', pitfall: 'Podem ser confundidas com hipercalemia se o contexto não for considerado.', action: 'Compare com ECG prévio e evolução seriada.' },
+  'lbbb': { firstLook: 'QRS largo com morfologia típica e ST-T secundários.', pitfall: 'Repolarização secundária pode mascarar ou simular isquemia.', action: 'Use Sgarbossa e o contexto clínico.' },
+  'rbbb': { firstLook: 'rSR’ em V1 e S terminal em I/V6.', pitfall: 'BRD pode coexistir com IAM e desviar a atenção.', action: 'Leia o ST mesmo em presença de bloqueio.' },
+  'brugada': { firstLook: 'Supra em cúpula V1–V2 com T negativa.', pitfall: 'Fenocópias e posicionamento alto dos eletrodos podem enganar.', action: 'Correlacione com febre, síncope e história familiar.' },
+  'hyperk': { firstLook: 'T apiculadas difusas, P achatada e QRS alargando progressivamente.', pitfall: 'T hiperaguda territorial pode confundir com hipercalemia.', action: 'Pense em toxicidade elétrica e trate cedo.' },
+  'wpw': { firstLook: 'PR curto e onda delta no início do QRS.', pitfall: 'Pode simular IAM antigo ou alargamento inespecífico do QRS.', action: 'Atenção especial se houver FA pré-excitada.' },
+  'paced': { firstLook: 'Espícula precedendo QRS largo com morfologia de pacing.', pitfall: 'Espículas sutis podem passar despercebidas em ganho baixo.', action: 'Se suspeita de isquemia, leia com critérios específicos e ECG prévio.' },
+  'asystole': { firstLook: 'Confirme em mais de uma derivação e cheque cabos/ganho.', pitfall: 'Cabo solto e ganho inadequado podem simular assistolia.', action: 'Ritmo não chocável: seguir algoritmo após confirmar.' }
+};
+
 function searchMatch(item, q) {
   if (!q) return true;
   const text = [item.name, item.type, item.explain, item.leads, item.territory, item.intervals, ...item.features, ...item.criteria].join(' ').toLowerCase();
@@ -355,6 +389,12 @@ export function EcgApp() {
           <div className="ecg-info-tile"><Ruler size={16} /><span>Intervalos</span><strong>{selected.intervals}</strong></div>
           <div className="ecg-info-tile"><Waves size={16} /><span>Território/contexto</span><strong>{selected.territory}</strong></div>
           <div className="ecg-info-tile"><ListChecks size={16} /><span>Reconhecimento</span><strong>{compactList(selected.features.slice(0, 4))}</strong></div>
+        </div>
+
+        <div className="ecg-pearls-grid">
+          <div className="ecg-pearl"><span>Olhe primeiro</span><strong>{(ECG_PEARLS[selected.id] || {}).firstLook || selected.features[0]}</strong></div>
+          <div className="ecg-pearl"><span>Armadilha</span><strong>{(ECG_PEARLS[selected.id] || {}).pitfall || 'Sempre correlacionar com clínica, traçados prévios e derivações adicionais.'}</strong></div>
+          <div className="ecg-pearl"><span>Pérola prática</span><strong>{(ECG_PEARLS[selected.id] || {}).action || selected.territory}</strong></div>
         </div>
 
         <EcgStrip title={`DII — ${selected.name}`} helper="Traçado animado em SVG com grade, calibração e intervalos didáticos." pattern={selected.pattern} rhythm={selected.rhythm} rate={selected.rate} lead="II" />

@@ -1,4 +1,4 @@
-import { Activity, Ambulance, Biohazard, Brain, Calculator, FlaskConical, HeartPulse, ScanLine, Syringe, Wind } from 'lucide-react';
+import { Activity, Ambulance, Baby, Biohazard, Brain, Bug, Calculator, FlaskConical, HeartPulse, Pill, ScanLine, Syringe, Wind } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AppShell, Card } from './components/Layout.jsx';
 import { Toast } from './components/Toast.jsx';
@@ -11,6 +11,9 @@ import { PocusApp } from './apps/PocusApp.jsx';
 import { IamApp } from './apps/IamApp.jsx';
 import { AvcApp } from './apps/AvcApp.jsx';
 import { EcgApp } from './apps/EcgApp.jsx';
+import { PedApp } from './apps/PedApp.jsx';
+import { IntoxApp } from './apps/IntoxApp.jsx';
+import { PeconhaApp } from './apps/PeconhaApp.jsx';
 import { APP_IDEAS } from './data/appIdeas.js';
 
 const apps = {
@@ -18,8 +21,11 @@ const apps = {
   vent: { title: 'SIMMples VENT', subtitle: 'Ventilação mecânica no DE', icon: Wind, component: VentApp },
   calc: { title: 'SIMMples Calc', subtitle: 'DVA, VIS e dose ↔ vazão', icon: Calculator, component: CalcApp },
   iam: { title: 'SIMMples IAM', subtitle: 'Dor torácica, HEART/TIMI e OMI', icon: HeartPulse, component: IamApp },
-  avc: { title: 'SIMMples AVC', subtitle: 'NIHSS, ABCD² e LVO', icon: Brain, component: AvcApp },
-  ecg: { title: 'SIMMples ECG', subtitle: 'Ritmos, IAM/OMI e curvas dinâmicas', icon: Activity, component: EcgApp },
+  avc: { title: 'SIMMples AVC', subtitle: 'NIHSS, ABCD², LVO e ASPECTS', icon: Brain, component: AvcApp },
+  ecg: { title: 'SIMMples ECG', subtitle: 'Ritmos, OMI e 12 derivações dinâmicas', icon: Activity, component: EcgApp },
+  ped: { title: 'SIMMples PED', subtitle: 'Triagem pediátrica, PEWS e hidratação', icon: Baby, component: PedApp },
+  intox: { title: 'SIMMples INTOX', subtitle: 'Toxidromes, ECG tóxico e antídotos', icon: Pill, component: IntoxApp },
+  peconha: { title: 'SIMMples PEÇONHA', subtitle: 'Animais peçonhentos e soroterapia', icon: Bug, component: PeconhaApp },
   trauma: { title: 'SIMMples TRAUMA', subtitle: 'Hemorragia oculta e choque', icon: Ambulance, component: TraumaApp },
   sepse: { title: 'SIMMples SEPSE', subtitle: 'Triagem de gravidade e primeira hora', icon: Biohazard, component: SepseApp },
   pocus: { title: 'SIMMples POCUS', subtitle: 'RUSH/choque e laudo rápido', icon: ScanLine, component: PocusApp }
@@ -112,7 +118,7 @@ export default function App() {
         </Card>
 
         <Card title="Como transformar em apps separados">
-          <p className="clinical-text">Cada rota pode virar um domínio próprio na Vercel: /gaso, /vent, /calc, /iam, /avc, /ecg, /trauma, /sepse e /pocus. Para separar, mantenha os componentes compartilhados e publique cada app apontando para o respectivo módulo.</p>
+          <p className="clinical-text">Cada rota pode virar um domínio próprio na Vercel: /gaso, /vent, /calc, /iam, /avc, /ecg, /ped, /intox, /peconha, /trauma, /sepse e /pocus. Para separar, mantenha os componentes compartilhados e publique cada app apontando para o respectivo módulo.</p>
         </Card>
       </AppShell>
       <Toast />

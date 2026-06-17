@@ -184,17 +184,27 @@ function beatWave({ t, lead, pattern, rhythm, beatIndex = 0, time = 0, pOnly = f
   if (rhythm === 'asystole') return 0.006 * Math.sin(2 * Math.PI * time * 13) + 0.004 * Math.sin(2 * Math.PI * time * 3.7);
 
   if (rhythm === 'vf') {
-    return 0.62 * Math.sin(2 * Math.PI * (2.0 + lead.length * 0.07) * time) + 0.26 * Math.sin(2 * Math.PI * 6.2 * time + lead.length) + 0.12 * Math.sin(2 * Math.PI * 13.1 * time);
+    const leadIndex = LEADS.indexOf(lead) + 1;
+    const envelope = 0.74 + 0.18 * Math.sin(2 * Math.PI * 0.24 * time + leadIndex * 0.19) + 0.08 * Math.sin(2 * Math.PI * 0.52 * time);
+    const coarse = 0.68 * Math.sin(2 * Math.PI * (3.8 + leadIndex * 0.05) * time + 0.6 * leadIndex)
+      + 0.24 * Math.sin(2 * Math.PI * 7.6 * time + 0.9)
+      + 0.16 * Math.sin(2 * Math.PI * 11.8 * time + 0.35 * leadIndex);
+    return envelope * coarse + 0.02 * Math.sin(2 * Math.PI * 18 * time);
   }
 
   if (rhythm === 'torsades') {
-    const envelope = 0.35 + 0.75 * (0.5 + 0.5 * Math.sin(2 * Math.PI * 0.42 * time + lead.length * 0.2));
-    return envelope * (0.95 * Math.sin(2 * Math.PI * 3.2 * time) + 0.22 * Math.sin(2 * Math.PI * 6.4 * time + 0.7));
+    const leadIndex = LEADS.indexOf(lead) + 1;
+    const twist = Math.sin(2 * Math.PI * 0.22 * time + leadIndex * 0.12);
+    const envelope = 0.22 + 0.95 * Math.abs(twist);
+    const carrier = Math.sin(2 * Math.PI * 3.35 * time + 0.15 * leadIndex)
+      + 0.34 * Math.sin(2 * Math.PI * 6.7 * time + 0.8)
+      + 0.12 * Math.sin(2 * Math.PI * 10.1 * time + 0.3);
+    return envelope * carrier * Math.sign(twist || 1) + 0.05 * Math.sin(2 * Math.PI * 0.9 * time);
   }
 
   if (rhythm === 'vt') {
     const polarity = leadIn(['aVR','V1','V2'], lead) ? -1 : 1;
-    return polarity * (0.92 * Math.sin(2 * Math.PI * t) + 0.34 * Math.sin(4 * Math.PI * t + 0.8)) + 0.16 * Math.sin(6 * Math.PI * t);
+    return polarity * (0.98 * Math.sin(2 * Math.PI * t) + 0.38 * Math.sin(4 * Math.PI * t + 0.65)) + 0.12 * Math.sin(6 * Math.PI * t);
   }
 
   if (rhythm === 'flutter') {
