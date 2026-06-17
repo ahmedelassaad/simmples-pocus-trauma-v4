@@ -47,6 +47,30 @@ export function SepseApp() {
         </ul>
       </Card>
 
+
+      <Card title="Autoridade SIMM — primeiros 60 minutos" kicker="Lembretes práticos">
+        <div className="micro-card-grid">
+          {[
+            'Documentar foco provável, gravidade e sinais de hipoperfusão logo na triagem.',
+            'Se choque ou hipoperfusão persistirem, reavaliar volume, necessidade de vasopressor e controle de fonte.',
+            'Lactato elevado não fecha diagnóstico isoladamente, mas aumenta senso de urgência e pede reavaliação seriada.',
+            'Reavaliar PAM, perfusão periférica, diurese, estado mental e resposta ao tratamento.'
+          ].map((item) => <article className="mini-card" key={item}><strong>{item}</strong></article>)}
+        </div>
+      </Card>
+
+      <Card title="Pontos de atenção" kicker="Evite perder gravidade">
+        <div className="tag-list">
+          {[
+            'PAM < 65 mmHg',
+            'Lactato ≥ 2 mmol/L',
+            'qSOFA ≥ 2',
+            'Alteração do estado mental',
+            'Sinais de choque franco ou piora dinâmica'
+          ].map((item) => <span className="tag tag-warning" key={item}>{item}</span>)}
+        </div>
+      </Card>
+
       <CopyButton text={result.report}>Copiar Evolução Sepse</CopyButton>
     </>
   );

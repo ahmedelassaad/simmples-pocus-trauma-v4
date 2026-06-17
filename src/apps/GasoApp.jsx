@@ -40,6 +40,29 @@ export function GasoApp() {
         <p className="clinical-text">{result.metabolic}</p>
       </Card>
 
+
+      <Card title="Checagens rápidas de autoridade SIMM" kicker="Leitura prática">
+        <div className="micro-card-grid">
+          {[
+            '1) Defina primeiro acidemia, alcalemia ou pH aparentemente normal.',
+            '2) Depois escolha o distúrbio primário dominante: metabólico ou respiratório.',
+            '3) Teste a compensação esperada antes de aceitar o resultado como “compensado”.',
+            '4) Se houver Na/Cl/HCO₃, refine com ânion gap e Δ/Δ quando couber.'
+          ].map((item) => <article className="mini-card" key={item}><strong>{item}</strong></article>)}
+        </div>
+      </Card>
+
+      <Card title="Alertas de plantão" kicker="O que não perder">
+        <div className="tag-list">
+          {[
+            'Acidose metabólica + compensação inadequada = pense distúrbio misto.',
+            'pH quase normal com pCO₂ e HCO₃ alterados pode esconder distúrbio duplo.',
+            'AG aumentado pede investigação de lactato, cetoacidose, toxinas e insuficiência renal.',
+            'Alcalose respiratória em dispneia/agitação não exclui gravidade clínica.'
+          ].map((item) => <span className="tag" key={item}>{item}</span>)}
+        </div>
+      </Card>
+
       <CopyButton text={result.report}>Copiar Relatório Clínico</CopyButton>
     </>
   );

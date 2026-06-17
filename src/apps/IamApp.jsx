@@ -101,6 +101,12 @@ export function IamApp() {
           <div className="ecg-pearl"><span>Armadilha</span><strong>ECG “sem supra clássico” não exclui oclusão. Posterior, De Winter, Wellens e Aslanger podem ser perdidos.</strong></div>
           <div className="ecg-pearl"><span>Pérola prática</span><strong>Se o padrão sugerir OMI, integre com dor, troponina seriada, eco/POCUS e ECGs seriados.</strong></div>
         </div>
+
+        <div className="ecg-pearls-grid top-gap">
+          <div className="ecg-pearl"><span>Derivações</span><strong>Leia o território e as recíprocas: inferior, lateral alta, posterior e precordiais direitas quando indicado.</strong></div>
+          <div className="ecg-pearl"><span>Intervalos / bloqueios</span><strong>QRS largo, BRE, BRD e ritmo estimulado exigem atenção especial para não perder OMI.</strong></div>
+          <div className="ecg-pearl"><span>Conduta prática</span><strong>ECG seriado, troponina seriada, eco/POCUS e correlação clínica aumentam a sensibilidade do diagnóstico.</strong></div>
+        </div>
         <div className="notice-box top-gap"><AlertTriangle size={15}/> Use junto ao SIMMples ECG para ver curvas dinâmicas dos padrões.</div>
       </Card>}
       {tab === 'relatorio' && <Card className="compact-card" title="Resumo copiável">

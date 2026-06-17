@@ -50,29 +50,29 @@ const ASPECTS_ZONES = {
 
 const AVC_IMAGES = [
   {
-    title: 'Isquemia precoce em território de ACM',
-    src: 'https://commons.wikimedia.org/wiki/Special:FilePath/1-s2.0-S0967586810002766-gr2.jpg',
-    note: 'Hipodensidade e apagamento de sulcos podem ser sutis nas primeiras horas.'
+    title: 'Isquemia precoce — ACM / artéria cerebral média',
+    src: '/avc/ischemia_early.png',
+    note: 'Exemplo com sinal de ACM hiperdensa e hipodensidade precoce cortical/subcortical.'
   },
   {
-    title: 'Hemorragia intracerebral',
-    src: 'https://commons.wikimedia.org/wiki/Special:FilePath/TAC%20craneo%20ECV.jpg',
-    note: 'Hiperdensidade intra-axial, efeito de massa e, às vezes, extensão ventricular.'
+    title: 'Infarto extenso de ACM',
+    src: '/avc/mca_infarct.png',
+    note: 'Compare o hemisfério normal com o acometido: perda da diferenciação córtico-subcortical e edema.'
+  },
+  {
+    title: 'Hemorragia intraparenquimatosa',
+    src: '/avc/ich.png',
+    note: 'Área hiperdensa intra-axial com edema/efeito de massa; pensar em extensão ventricular e desvio de linha média.'
   },
   {
     title: 'Hemorragia subaracnoide',
-    src: 'https://commons.wikimedia.org/wiki/Special:FilePath/CT%20of%20subarachnoid%20hemorrhage.png',
-    note: 'Sangue nas cisternas basais e sulcos. Pensar em HSA aneurismática no contexto adequado.'
+    src: '/avc/sah.png',
+    note: 'Sangue nas cisternas basais e fissuras silvianas; procure também hidrocefalia e sangue intraventricular.'
   },
   {
-    title: 'Hematoma epidural',
-    src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Epidural%20hematoma.png',
-    note: 'Coleção biconvexa hiperdensa, geralmente traumática, com efeito de massa.'
-  },
-  {
-    title: 'Mapa dos territórios do ASPECTS',
-    src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Cerebral%20regions%20by%20ASPECTS.png',
-    note: 'ASPECTS parte de 10 e subtrai 1 ponto para cada região de ACM com alteração isquêmica precoce.'
+    title: 'Isquemia hipodensa sem marcação',
+    src: '/avc/ischemia_plain.png',
+    note: 'Boa para treinar olho clínico: apagamento de sulcos, hipodensidade e assimetria hemisférica.'
   }
 ];
 
@@ -170,7 +170,7 @@ export function AvcApp() {
           </div>
           <p className="clinical-text top-gap">Lembrete prático: ASPECTS começa em 10. Subtraia 1 ponto para cada região do território da ACM com hipodensidade/apagamento precoce. Integre com clínica, NIHSS e angiografia quando disponível.</p>
         </Card>
-        <Card className="compact-card" title="Galeria de TC — imagens reais abertas">
+        <Card className="compact-card" title="Galeria de TC — imagens reais">
           <div className="avc-image-grid">
             {AVC_IMAGES.map((image) => (
               <article className="avc-image-card" key={image.title}>
@@ -183,11 +183,21 @@ export function AvcApp() {
             ))}
           </div>
         </Card>
+        <Card className="compact-card" title="O que procurar na TC" kicker="Checklist visual de emergência">
+          <div className="micro-card-grid">
+            {[
+              'Hemorragia: hiperdensidade no parênquima, cisternas, ventrículos ou coleções extra-axiais.',
+              'Isquemia precoce: apagamento de sulcos, perda da ínsula, núcleo lentiforme borrado e artéria hiperdensa.',
+              'Efeito de massa: desvio de linha média, compressão ventricular e herniação iminente.',
+              'ASPECTS: documente explicitamente quais regiões M1–M6, I, C, L e IC estão alteradas.'
+            ].map((item)=><article className="mini-card" key={item}><strong><ScanSearch size={15} />{item}</strong></article>)}
+          </div>
+        </Card>
       </>}
       {tab === 'fluxo' && <Card className="compact-card" title="Checklist de fluxo AVC">
         <div className="micro-card-grid">
           {['Última vez visto bem / início dos sintomas', 'Glicemia capilar imediata', 'NIHSS e exame seriado', 'TC de crânio sem contraste', 'AngioTC se suspeita LVO', 'Checar anticoagulantes/contraindicações locais', 'Contato neurologia/intervenção conforme fluxo'].map((item) => <article className="mini-card" key={item}><strong><Brain size={15}/>{item}</strong></article>)}
-          {['Hemorragia: distinguir intra-axial, HSA, epidural/subdural e efeito de massa', 'Isquemia precoce: buscar apagamento de sulcos, perda da diferenciação córtico-subcortical e hiperdensidade arterial', 'ASPECTS: documentar explicitamente quando oclusão de ACM for hipótese'].map((item) => <article className="mini-card" key={item}><strong><ScanSearch size={15}/>{item}</strong></article>)}
+          {['Hemorragia: distinguir intra-axial, HSA, epidural/subdural e efeito de massa', 'Isquemia precoce: buscar apagamento de sulcos, perda da diferenciação córtico-subcortical e hiperdensidade arterial', 'ASPECTS: documentar explicitamente quando oclusão de ACM for hipótese', 'Mímicos importantes: hipoglicemia, crise convulsiva, migrânea, paralisia de Todd e intoxicação.'].map((item) => <article className="mini-card" key={item}><strong><ScanSearch size={15}/>{item}</strong></article>)}
         </div>
         <pre className="report-box top-gap">{report}</pre>
         <CopyButton text={report}><ClipboardList size={18}/> Copiar resumo AVC</CopyButton>
