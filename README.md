@@ -72,3 +72,10 @@ A chave fica no backend serverless em `/api/simm-ai.js`; ela não é exposta no 
 - Pergunta livre sobre a tela atual
 
 A IA é uma camada consultiva e não substitui protocolo local, dupla checagem, decisão médica ou os cálculos determinísticos da suite.
+
+## v13 — ECG explicativo e traçados revisados
+- Explicações breves por padrão de ECG.
+- Derivações afetadas, número/grupo de derivações, território e intervalos relevantes.
+- Critérios práticos de reconhecimento por ritmo, bloqueio e padrão IAM/OMI.
+- Traçados SVG dinâmicos revisados para morfologia mais fidedigna por derivação.
+- Mantido todo o conteúdo da v12 e sem alterar cálculos/curvas do VENT.
