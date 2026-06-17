@@ -1,4 +1,4 @@
-import { Ambulance, Biohazard, Calculator, FlaskConical, ScanLine, Syringe, Wind } from 'lucide-react';
+import { Activity, Ambulance, Biohazard, Brain, Calculator, FlaskConical, HeartPulse, ScanLine, Syringe, Wind } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AppShell, Card } from './components/Layout.jsx';
 import { Toast } from './components/Toast.jsx';
@@ -8,12 +8,18 @@ import { CalcApp } from './apps/CalcApp.jsx';
 import { TraumaApp } from './apps/TraumaApp.jsx';
 import { SepseApp } from './apps/SepseApp.jsx';
 import { PocusApp } from './apps/PocusApp.jsx';
+import { IamApp } from './apps/IamApp.jsx';
+import { AvcApp } from './apps/AvcApp.jsx';
+import { EcgApp } from './apps/EcgApp.jsx';
 import { APP_IDEAS } from './data/appIdeas.js';
 
 const apps = {
   gaso: { title: 'SIMMples GASO', subtitle: 'Gasometria arterial estruturada', icon: FlaskConical, component: GasoApp },
   vent: { title: 'SIMMples VENT', subtitle: 'Ventilação mecânica no DE', icon: Wind, component: VentApp },
   calc: { title: 'SIMMples Calc', subtitle: 'DVA, VIS e dose ↔ vazão', icon: Calculator, component: CalcApp },
+  iam: { title: 'SIMMples IAM', subtitle: 'Dor torácica, HEART/TIMI e OMI', icon: HeartPulse, component: IamApp },
+  avc: { title: 'SIMMples AVC', subtitle: 'NIHSS, ABCD² e LVO', icon: Brain, component: AvcApp },
+  ecg: { title: 'SIMMples ECG', subtitle: 'Ritmos, IAM/OMI e curvas dinâmicas', icon: Activity, component: EcgApp },
   trauma: { title: 'SIMMples TRAUMA', subtitle: 'Hemorragia oculta e choque', icon: Ambulance, component: TraumaApp },
   sepse: { title: 'SIMMples SEPSE', subtitle: 'Triagem de gravidade e primeira hora', icon: Biohazard, component: SepseApp },
   pocus: { title: 'SIMMples POCUS', subtitle: 'RUSH/choque e laudo rápido', icon: ScanLine, component: PocusApp }
@@ -26,7 +32,7 @@ function routeFromPath() {
 
 function SuiteDock({ active, onOpen }) {
   return (
-    <nav className="suite-dock" aria-label="Trocar app da SIMM Suite">
+    <nav className="suite-dock suite-dock-top" aria-label="Trocar app da SIMM Suite">
       {Object.entries(apps).map(([slug, app]) => {
         const Icon = app.icon;
         return (
@@ -57,6 +63,7 @@ export default function App() {
   const open = (slug) => {
     window.history.pushState({}, '', slug === 'home' ? '/' : `/${slug}`);
     setRoute(slug);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const Current = useMemo(() => route !== 'home' ? apps[route]?.component : null, [route]);
@@ -66,8 +73,8 @@ export default function App() {
     return (
       <>
         <AppShell title={meta.title} subtitle={meta.subtitle} onBack={() => open('home')}>
-          <Current />
           <SuiteDock active={route} onOpen={open} />
+          <Current />
         </AppShell>
         <Toast />
       </>
@@ -85,7 +92,7 @@ export default function App() {
           <Syringe className="hero-icon" size={40} aria-hidden="true" />
         </div>
 
-        <div className="app-grid">
+        <div className="app-grid app-grid-compact">
           {Object.entries(apps).map(([slug, app]) => {
             const Icon = app.icon;
             return (
@@ -105,7 +112,7 @@ export default function App() {
         </Card>
 
         <Card title="Como transformar em apps separados">
-          <p className="clinical-text">Cada rota pode virar um domínio próprio na Vercel: /gaso, /vent, /calc, /trauma, /sepse e /pocus. Para separar, mantenha os componentes compartilhados e publique cada app apontando para o respectivo módulo.</p>
+          <p className="clinical-text">Cada rota pode virar um domínio próprio na Vercel: /gaso, /vent, /calc, /iam, /avc, /ecg, /trauma, /sepse e /pocus. Para separar, mantenha os componentes compartilhados e publique cada app apontando para o respectivo módulo.</p>
         </Card>
       </AppShell>
       <Toast />

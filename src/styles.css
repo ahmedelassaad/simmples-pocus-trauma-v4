@@ -755,3 +755,104 @@ body {
   .ai-head small { text-align: left; max-width: 100%; }
   .ai-action-grid { grid-template-columns: 1fr; }
 }
+
+/* SIMM Suite v12 — compact clinical layout + new apps */
+.phone-frame { width: min(100%, 680px); }
+.brand-header { padding: 14px 16px 10px; }
+.logo { width: 42px; height: 42px; border-radius: 14px; }
+.brand-copy h1 { font-size: clamp(22px, 5vw, 30px); }
+.subtitle { font-size: 13px; margin-top: 5px; }
+.app-content { padding: 10px; gap: 9px; }
+.card { padding: 12px; border-radius: 18px; }
+.card-head { margin-bottom: 8px; }
+.card h2 { font-size: 16px; }
+.grid-2, .grid-3 { gap: 7px; }
+.result { min-height: 62px; padding: 10px; border-radius: 15px; }
+.result strong { font-size: 18px; }
+.field { gap: 5px; }
+.field-box { height: 44px; border-radius: 13px; padding: 0 10px; }
+.field-box input, .field-box select { font-size: 16px; }
+.option-grid { gap: 6px; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+.option-pill { min-height: 38px; border-radius: 12px; padding: 7px 8px; font-size: 12px; }
+.toggle-row { padding: 9px 10px; border-radius: 14px; }
+.notice-box { padding: 9px 10px; border-radius: 14px; font-size: 13px; }
+.primary-button, .secondary-button { min-height: 46px; border-radius: 14px; }
+.clinical-text { font-size: 13px; line-height: 1.42; }
+.report-box { font-size: 12px; line-height: 1.35; max-height: 260px; overflow: auto; white-space: pre-wrap; }
+.footer-note { padding: 10px 16px 14px; }
+
+.suite-dock.suite-dock-top {
+  position: sticky;
+  top: 0;
+  bottom: auto;
+  margin: -2px -2px 4px;
+  padding: 7px;
+  border-radius: 18px;
+  z-index: 20;
+}
+.suite-dock-item { min-width: 66px; min-height: 44px; border-radius: 14px; font-size: 10px; }
+.suite-dock-item svg { width: 16px; height: 16px; }
+.segmented {
+  display: flex;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 5px;
+  margin: 0 0 7px;
+  scrollbar-width: none;
+}
+.segmented::-webkit-scrollbar { display: none; }
+.segmented button { min-width: 84px; min-height: 36px; padding: 0 10px; border-radius: 12px; font-size: 12px; white-space: nowrap; }
+.app-grid-compact { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; }
+.app-grid-compact .app-tile { min-height: 105px; padding: 11px; border-radius: 18px; }
+.app-grid-compact .app-tile strong { font-size: 14px; }
+.app-grid-compact .app-tile span { font-size: 11px; }
+.hero-panel { padding: 13px; border-radius: 20px; }
+.hero-panel h2 { font-size: 20px; }
+
+.compact-module { display: flex; flex-direction: column; gap: 8px; }
+.compact-card { padding: 11px; }
+.dense-form { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.compact-toggle-grid { gap: 6px; }
+.micro-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.nihss-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.search-box { height: 44px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(114,245,255,.14); background: rgba(1,6,29,.44); border-radius: 14px; padding: 0 11px; margin-bottom: 8px; }
+.search-box svg { color: var(--cyan-soft); }
+.search-box input { min-width: 0; flex: 1; color: var(--white); border: 0; outline: 0; background: transparent; font-weight: 800; }
+.selector-scroll { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 8px; scrollbar-width: none; }
+.selector-scroll::-webkit-scrollbar { display: none; }
+.selector-chip { min-width: 150px; border: 1px solid rgba(255,255,255,.09); border-radius: 15px; padding: 9px; background: rgba(1,6,29,.40); color: var(--slate); text-align: left; }
+.selector-chip span { display: block; color: var(--white); font-weight: 950; font-size: 13px; }
+.selector-chip small { display: block; color: var(--muted); margin-top: 3px; font-size: 11px; }
+.selector-chip.active { background: linear-gradient(135deg, rgba(24,216,232,.95), rgba(114,245,255,.92)); color: #001034; border-color: transparent; }
+.selector-chip.active span, .selector-chip.active small { color: #001034; }
+.ecg-feature-card { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; border: 1px solid rgba(114,245,255,.16); border-radius: 17px; padding: 11px; background: rgba(1,6,29,.36); margin-bottom: 8px; }
+.ecg-feature-card h3 { margin: 2px 0 5px; font-size: 18px; letter-spacing: -.03em; }
+.ecg-feature-card p { margin: 0; color: #d8e6ff; font-size: 13px; line-height: 1.35; }
+.ecg-feature-card svg { color: var(--cyan-soft); flex: 0 0 auto; }
+.ecg-card { border: 1px solid rgba(114,245,255,.16); border-radius: 17px; padding: 10px; background: rgba(1,6,29,.42); margin-top: 8px; }
+.ecg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.ecg-head strong { font-size: 14px; }
+.ecg-head small { color: var(--slate); font-size: 11px; text-align: right; }
+.ecg-svg, .ecg-mini-svg { width: 100%; display: block; border-radius: 12px; background: #071032; overflow: hidden; }
+.ecg-grid { stroke: rgba(255,93,108,.12); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.ecg-grid.major { stroke: rgba(255,93,108,.22); stroke-width: 1; }
+.ecg-path { fill: none; stroke: #72f5ff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(114,245,255,.22)); vector-effect: non-scaling-stroke; }
+.ecg-path.mini { stroke-width: 1.6; }
+.ecg-lead-label { fill: rgba(234,248,255,.85); font-size: 11px; font-weight: 900; }
+.ecg-12lead { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; margin-top: 8px; }
+
+@media (max-width: 520px) {
+  .phone-frame { width: 100%; border-radius: 18px; }
+  .page-shell { padding: 0; }
+  .brand-header { padding: 10px 10px 8px; }
+  .logo { width: 38px; height: 38px; }
+  .brand-copy h1 { font-size: 21px; }
+  .subtitle { font-size: 12px; }
+  .app-content { padding: 8px; gap: 7px; }
+  .card { padding: 10px; border-radius: 16px; }
+  .app-grid-compact { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid-2, .grid-3, .dense-form, .nihss-grid, .micro-card-grid { grid-template-columns: 1fr; }
+  .ecg-12lead { grid-template-columns: 1fr; }
+  .selector-chip { min-width: 136px; }
+  .suite-dock-item { min-width: 60px; }
+}

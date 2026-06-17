@@ -1,359 +1,519 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ClipboardList, Eraser, RotateCcw, Syringe } from 'lucide-react';
+import { Card, Result } from '../components/Layout.jsx';
+import { NumberField, Segmented, SelectField } from '../components/Inputs.jsx';
+import { CopyButton } from '../components/CopyButton.jsx';
+import { clean, n } from '../lib/format.js';
 
-// Banco de Dados Fundido (SIMM)
 const DRUGS = [
-  { id: 'noradrenalina', name: 'Noradrenalina', presentation: '4 mg/mL — amp. 4 mL', defaultAmt: 16, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.01, doseMax: 3.0, doseUnit: 'mcg/kg/min', visMultiplier: 100, isWeightBased: true, maxAvpConc: 0.04, pills: [{ text: "SG5% ou SF0.9%" }, { text: "Risco de Necrose Tissular", danger: true }] },
-  { id: 'adrenalina', name: 'Adrenalina', presentation: '1 mg/mL — amp. 1 mL', defaultAmt: 10, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.01, doseMax: 1.0, doseUnit: 'mcg/kg/min', visMultiplier: 100, isWeightBased: true, maxAvpConc: 0.04, pills: [{ text: "SG5% ou SF0.9%" }, { text: "CVC Preferencial", danger: true }] },
-  { id: 'vasopressina', name: 'Vasopressina', presentation: '20 UI/mL — amp. 1 mL', defaultAmt: 40, defaultVol: 100, unitAmt: 'UI', doseKind: 'uiMin', doseMin: 0.01, doseMax: 0.06, doseUnit: 'UI/min', visMultiplier: 10000, isWeightBased: false, maxAvpConc: 0, pills: [{ text: "SF0.9% Preferencial" }, { text: "CVC Obrigatório", danger: true }] },
-  { id: 'dopamina', name: 'Dopamina', presentation: '5 mg/mL — amp. 10 mL', defaultAmt: 250, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 2.0, doseMax: 20.0, doseUnit: 'mcg/kg/min', visMultiplier: 1, isWeightBased: true, maxAvpConc: 3.2, pills: [{ text: "SG5% ou SF0.9%" }, { text: "Incompatível c/ Bic.", danger: true }] },
-  { id: 'dobutamina', name: 'Dobutamina', presentation: '12,5 mg/mL — amp. 20 mL', defaultAmt: 250, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 2.5, doseMax: 20.0, doseUnit: 'mcg/kg/min', visMultiplier: 1, isWeightBased: true, maxAvpConc: 2.0, pills: [{ text: "SG5% ou SF0.9%" }] },
-  { id: 'milrinona', name: 'Milrinona', presentation: '1 mg/mL — amp. 20 mL', defaultAmt: 20, defaultVol: 100, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.125, doseMax: 0.75, doseUnit: 'mcg/kg/min', visMultiplier: 10, isWeightBased: true, maxAvpConc: 999, pills: [{ text: "SG5% ou SF0.9%" }, { text: "Ajustar na Lesão Renal", danger: true }] },
-  { id: 'nitroprussiato', name: 'Nitroprussiato de Sódio', presentation: '25 mg/mL — amp. 2 mL', defaultAmt: 50, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 0.3, doseMax: 10.0, doseUnit: 'mcg/kg/min', visMultiplier: 0, isWeightBased: true, maxAvpConc: 999, pills: [{ text: "Apenas SG5%" }, { text: "Fotossensível", danger: true }] },
-  { id: 'nitroglicerina', name: 'Nitroglicerina (Tridil)', presentation: '5 mg/mL — amp. 5/10 mL', defaultAmt: 50, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgMin', doseMin: 5, doseMax: 200, doseUnit: 'mcg/min', visMultiplier: 0, isWeightBased: false, maxAvpConc: 999, pills: [{ text: "SG5% ou SF0.9%" }, { text: "Frasco de Vidro", danger: true }] },
-  { id: 'esmolol', name: 'Esmolol', presentation: '10 mg/mL — amp. 10 mL', defaultAmt: 2500, defaultVol: 250, unitAmt: 'mg', doseKind: 'mcgKgMin', doseMin: 50, doseMax: 300, doseUnit: 'mcg/kg/min', visMultiplier: 0, isWeightBased: true, maxAvpConc: 10.0, pills: [{ text: "SG5% ou SF0.9%" }] },
-  { id: 'azul_metileno', name: 'Azul de Metileno', presentation: '10 mg/mL — amp. 10 mL', defaultAmt: 100, defaultVol: 500, unitAmt: 'mg', doseKind: 'mgKgH', doseMin: 0.25, doseMax: 2.0, doseUnit: 'mg/kg/h', visMultiplier: 0, isWeightBased: true, maxAvpConc: 999, pills: [{ text: "SG5% Exclusivo" }, { text: "Risco Serotoninérgico", danger: true }] }
+  {
+    id: 'noradrenalina',
+    name: 'Noradrenalina',
+    presentation: '4 mg/mL — ampola 4 mL',
+    dilution: 'Diluir 16 mg (4 ampolas) em SG 5% 234 mL',
+    concentrationLabel: '60 mcg/mL',
+    concentration: 60,
+    concentrationUnit: 'mcg/mL',
+    doseKind: 'mcgKgMin',
+    doseMin: 0.02,
+    doseMax: 2,
+    doseUnit: 'mcg/kg/min',
+    note: 'Nesta diluição, cada 1 mL/h corresponde a 1 mcg/min. Dose em mcg/kg/min = vazão ÷ peso.',
+    vis: 'norepi'
+  },
+  {
+    id: 'dobutamina',
+    name: 'Dobutamina',
+    presentation: '12,5 mg/mL — ampola 20 mL',
+    dilution: 'Diluir 1000 mg (4 ampolas) em SF 0,9% 170 mL',
+    concentrationLabel: '4 mg/mL',
+    concentration: 4000,
+    concentrationUnit: 'mcg/mL',
+    doseKind: 'mcgKgMin',
+    doseMin: 2,
+    doseMax: 20,
+    doseUnit: 'mcg/kg/min',
+    note: 'Dose usual informada: 2 a 20 mcg/kg/min.',
+    vis: 'dobuta'
+  },
+  {
+    id: 'adrenalina',
+    name: 'Adrenalina',
+    presentation: '1 mg/mL — ampola 1 mL',
+    dilution: 'Diluir 6 mg (6 ampolas) em SF 0,9% 94 mL',
+    concentrationLabel: '60 mcg/mL',
+    concentration: 60,
+    concentrationUnit: 'mcg/mL',
+    doseKind: 'mcgMin',
+    doseMin: 1,
+    doseMax: 20,
+    doseUnit: 'mcg/min',
+    note: 'Nesta diluição, cada 1 mL/h corresponde a 1 mcg/min.',
+    vis: 'epi'
+  },
+  {
+    id: 'vasopressina',
+    name: 'Vasopressina',
+    presentation: '20 UI/mL — ampola 1 mL',
+    dilution: 'Diluir 20 UI (1 ampola) em SF 0,9% 100 mL',
+    concentrationLabel: '0,2 UI/mL',
+    concentration: 0.2,
+    concentrationUnit: 'UI/mL',
+    doseKind: 'uiMin',
+    doseMin: 0.01,
+    doseMax: 0.04,
+    doseUnit: 'UI/min',
+    note: 'Dose usual informada: 0,01 a 0,04 UI/min, equivalente a aproximadamente 3 a 12 mL/h nesta diluição.',
+    vis: 'vaso'
+  },
+  {
+    id: 'nitroprussiato',
+    name: 'Nitroprussiato de sódio',
+    presentation: '25 mg/mL — ampola 2 mL',
+    dilution: 'Diluir 50 mg (1 ampola) em SG 5% 248 mL',
+    concentrationLabel: '200 mcg/mL',
+    concentration: 200,
+    concentrationUnit: 'mcg/mL',
+    doseKind: 'mcgKgMin',
+    doseMin: 0.5,
+    doseMax: 10,
+    doseUnit: 'mcg/kg/min',
+    note: 'Dose usual informada: 0,5 a 10 mcg/kg/min.',
+    vis: null
+  },
+  {
+    id: 'nitroglicerina',
+    name: 'Nitroglicerina',
+    presentation: '5 mg/mL — ampola 5/10 mL',
+    dilution: 'Diluir 50 mg em SG 5% 250 mL',
+    concentrationLabel: '200 mcg/mL',
+    concentration: 200,
+    concentrationUnit: 'mcg/mL',
+    doseKind: 'mcgKgMin',
+    doseMin: 0.5,
+    doseMax: 10,
+    doseUnit: 'mcg/kg/min',
+    note: 'Dose usual informada: 0,5 a 10 mcg/kg/min.',
+    vis: null
+  },
+  {
+    id: 'milrinone',
+    name: 'Milrinone',
+    presentation: '1 mg/mL — ampola 20 mL',
+    dilution: 'Diluir 20 mg (1 ampola) em SF 0,9% 80 mL',
+    concentrationLabel: '200 mcg/mL',
+    concentration: 200,
+    concentrationUnit: 'mcg/mL',
+    doseKind: 'mcgKgMin',
+    doseMin: 0.375,
+    doseMax: 0.75,
+    doseUnit: 'mcg/kg/min',
+    note: 'Dose usual informada: 0,375 a 0,75 mcg/kg/min.',
+    vis: 'milrinone'
+  },
+  {
+    id: 'dopamina',
+    name: 'Dopamina',
+    presentation: '5 mg/mL — ampola 10 mL',
+    dilution: 'Diluir 250 mg (50 mL) em SF 0,9% 200 mL',
+    concentrationLabel: '1 mg/mL',
+    concentration: 1000,
+    concentrationUnit: 'mcg/mL',
+    doseKind: 'mcgKgMin',
+    doseMin: 5,
+    doseMax: 20,
+    doseUnit: 'mcg/kg/min',
+    note: 'Dose usual informada: 5 a 20 mcg/kg/min.',
+    vis: 'dopa'
+  },
+  {
+    id: 'azul-metileno',
+    name: 'Azul de Metileno',
+    presentation: '10 mg/mL — ampola 10 mL',
+    dilution: 'Diluir 1000 mg (10 ampolas) em SF 0,9% 100 mL',
+    concentrationLabel: '5 mg/mL',
+    concentration: 5,
+    concentrationUnit: 'mg/mL',
+    doseKind: 'mgKgH',
+    doseMin: 0.5,
+    doseMax: 4,
+    doseUnit: 'mg/kg/h',
+    bolus: { min: 1.5, max: 2, unit: 'mg/kg', minutes: 10 },
+    note: 'Dose usual informada: bolus 1,5 a 2 mg/kg em 10 min; contínuo 0,5 a 4 mg/kg/h.',
+    vis: null
+  }
 ];
 
+const accessOptions = [
+  { value: 'central', label: 'Acesso Central' },
+  { value: 'peripheral', label: 'Acesso Periférico' }
+];
+
+const tabOptions = [
+  { value: 'calc', label: 'DVA' },
+  { value: 'vis', label: 'VIS' },
+  { value: 'protocol', label: 'Protocolo' }
+];
+
+const drugOptions = DRUGS.map((drug) => ({ value: drug.id, label: drug.name }));
+
 function toNumber(value) {
-  const number = parseFloat(String(value).replace(',', '.'));
-  return number > 0 ? number : 0;
+  const number = clean(String(value).replace(',', '.'));
+  return number && number > 0 ? number : null;
 }
 
-// CORREÇÃO CRÍTICA AQUI: O nome tem que ser exatamente o que o sócio usou (CalcApp)
+function needsWeight(drug) {
+  return ['mcgKgMin', 'mgKgH'].includes(drug.doseKind) || Boolean(drug.bolus);
+}
+
+function doseDigits(drug) {
+  if (drug.doseKind === 'uiMin') return 3;
+  if (drug.doseKind === 'mcgKgMin' && drug.doseMax <= 2) return 3;
+  if (drug.doseKind === 'mgKgH') return 2;
+  return 1;
+}
+
+function flowDigits(value) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return 1;
+  if (value < 1) return 2;
+  if (value < 10) return 1;
+  return 0;
+}
+
+function fmt(value, digits = 1) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return '--';
+  return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
+function calcFlowFromDose(drug, dose, weight) {
+  if (!drug || dose === null) return null;
+  if (drug.doseKind === 'mcgKgMin') {
+    if (!weight) return null;
+    return (dose * weight * 60) / drug.concentration;
+  }
+  if (drug.doseKind === 'mcgMin') {
+    return (dose * 60) / drug.concentration;
+  }
+  if (drug.doseKind === 'uiMin') {
+    return (dose * 60) / drug.concentration;
+  }
+  if (drug.doseKind === 'mgKgH') {
+    if (!weight) return null;
+    return (dose * weight) / drug.concentration;
+  }
+  return null;
+}
+
+function calcDoseFromFlow(drug, flow, weight) {
+  if (!drug || !flow) return null;
+  if (drug.doseKind === 'mcgKgMin') {
+    if (!weight) return null;
+    return (flow * drug.concentration) / 60 / weight;
+  }
+  if (drug.doseKind === 'mcgMin') {
+    return (flow * drug.concentration) / 60;
+  }
+  if (drug.doseKind === 'uiMin') {
+    return (flow * drug.concentration) / 60;
+  }
+  if (drug.doseKind === 'mgKgH') {
+    if (!weight) return null;
+    return (flow * drug.concentration) / weight;
+  }
+  return null;
+}
+
+function bolusRange(drug, weight) {
+  if (!drug?.bolus || !weight) return null;
+  const minMg = drug.bolus.min * weight;
+  const maxMg = drug.bolus.max * weight;
+  const minMl = minMg / drug.concentration;
+  const maxMl = maxMg / drug.concentration;
+  return {
+    minMg,
+    maxMg,
+    minMl,
+    maxMl,
+    minFlowEq: minMl * (60 / drug.bolus.minutes),
+    maxFlowEq: maxMl * (60 / drug.bolus.minutes)
+  };
+}
+
+function rangeTone(dose, drug) {
+  if (dose === null || dose === undefined) return 'neutral';
+  if (dose < drug.doseMin) return 'warning';
+  if (dose > drug.doseMax) return 'danger';
+  return 'success';
+}
+
+function rangeText(drug, weight) {
+  const minFlow = calcFlowFromDose(drug, drug.doseMin, weight);
+  const maxFlow = calcFlowFromDose(drug, drug.doseMax, weight);
+  if (minFlow === null || maxFlow === null) return 'Informe o peso';
+  return `${fmt(minFlow, flowDigits(minFlow))}–${fmt(maxFlow, flowDigits(maxFlow))} mL/h`;
+}
+
+function oneMlHText(drug, weight) {
+  const dose = calcDoseFromFlow(drug, 1, weight);
+  if (dose === null) {
+    const dosePerMinute = drug.concentration / 60;
+    if (drug.doseKind === 'mcgKgMin') return `1 mL/h = ${fmt(dosePerMinute, 2)} mcg/min; informe peso para mcg/kg/min.`;
+    return 'Informe o peso para equivalência por kg.';
+  }
+  return `1 mL/h = ${fmt(dose, doseDigits(drug))} ${drug.doseUnit}`;
+}
+
+function titrationRows(drug, weight) {
+  const steps = [0, 0.25, 0.5, 0.75, 1];
+  return steps.map((factor) => {
+    const dose = drug.doseMin + (drug.doseMax - drug.doseMin) * factor;
+    const flow = calcFlowFromDose(drug, dose, weight);
+    return { dose, flow };
+  });
+}
+
+function visFromCurrent(drug, currentDose, weight) {
+  if (!drug?.vis || currentDose === null) return null;
+  if (drug.vis === 'dopa' || drug.vis === 'dobuta') return currentDose;
+  if (drug.vis === 'milrinone') return currentDose * 10;
+  if (drug.vis === 'norepi') return currentDose * 100;
+  if (drug.vis === 'epi') {
+    if (!weight) return null;
+    return (currentDose / weight) * 100;
+  }
+  if (drug.vis === 'vaso') {
+    if (!weight) return null;
+    return (currentDose / weight) * 10000;
+  }
+  return null;
+}
+
+function visTotal(values) {
+  const dopa = toNumber(values.dopamina) || 0;
+  const dobuta = toNumber(values.dobutamina) || 0;
+  const epi = toNumber(values.adrenalina) || 0;
+  const norepi = toNumber(values.noradrenalina) || 0;
+  const milrinone = toNumber(values.milrinone) || 0;
+  const vaso = toNumber(values.vasopressina) || 0;
+  return dopa + dobuta + (100 * epi) + (100 * norepi) + (10 * milrinone) + (10000 * vaso);
+}
+
 export function CalcApp() {
   const [activeTab, setActiveTab] = useState('calc');
-  const [access, setAccess] = useState('CVC');
+  const [access, setAccess] = useState('central');
   const [drugId, setDrugId] = useState('noradrenalina');
-  
-  // Variáveis Fixas
   const [weight, setWeight] = useState('70');
-  const [amt, setAmt] = useState('');
-  const [vol, setVol] = useState('');
-  
-  // Variáveis Bidirecionais
-  const [targetDose, setTargetDose] = useState('');
   const [flow, setFlow] = useState('');
-  
-  const [visValues, setVisValues] = useState({ dopamina: '', dobutamina: '', adrenalina: '', noradrenalina: '', milrinona: '', vasopressina: '' });
+  const [targetDose, setTargetDose] = useState('');
+  const [visValues, setVisValues] = useState({
+    dopamina: '',
+    dobutamina: '',
+    adrenalina: '',
+    noradrenalina: '',
+    milrinone: '',
+    vasopressina: ''
+  });
+
+  const weightRef = useRef(null);
+  const targetDoseRef = useRef(null);
+  const flowRef = useRef(null);
+  const visRefs = {
+    dopamina: useRef(null),
+    dobutamina: useRef(null),
+    adrenalina: useRef(null),
+    noradrenalina: useRef(null),
+    milrinone: useRef(null),
+    vasopressina: useRef(null)
+  };
+
+  const focusRef = (ref) => window.setTimeout(() => ref.current?.focus(), 40);
 
   const drug = useMemo(() => DRUGS.find((item) => item.id === drugId) || DRUGS[0], [drugId]);
+  const weightNumber = toNumber(weight);
+  const flowNumber = toNumber(flow);
+  const targetDoseNumber = toNumber(targetDose);
 
-  useEffect(() => {
-    setAmt(String(drug.defaultAmt));
-    setVol(String(drug.defaultVol));
-    setTargetDose('');
-    setFlow('');
-  }, [drug]);
+  const currentDose = useMemo(() => calcDoseFromFlow(drug, flowNumber, weightNumber), [drug, flowNumber, weightNumber]);
+  const minFlow = useMemo(() => calcFlowFromDose(drug, drug.doseMin, weightNumber), [drug, weightNumber]);
+  const maxFlow = useMemo(() => calcFlowFromDose(drug, drug.doseMax, weightNumber), [drug, weightNumber]);
+  const targetFlow = useMemo(() => calcFlowFromDose(drug, targetDoseNumber, weightNumber), [drug, targetDoseNumber, weightNumber]);
+  const bolus = useMemo(() => bolusRange(drug, weightNumber), [drug, weightNumber]);
+  const individualVis = useMemo(() => visFromCurrent(drug, currentDose, weightNumber), [drug, currentDose, weightNumber]);
+  const totalVis = useMemo(() => visTotal(visValues), [visValues]);
 
-  const weightNum = toNumber(weight);
-  const amtNum = toNumber(amt);
-  const volNum = toNumber(vol);
-  const targetDoseNum = toNumber(targetDose);
-  const flowNum = toNumber(flow);
-
-  const workConc = useMemo(() => {
-    if (volNum <= 0 || amtNum <= 0) return 0;
-    const baseConc = amtNum / volNum; 
-    if (drug.unitAmt === 'UI' || drug.doseKind === 'mgKgH') return baseConc;
-    return baseConc * 1000; 
-  }, [amtNum, volNum, drug]);
-
-  const currentDose = useMemo(() => {
-    if (workConc === 0 || flowNum === 0) return null;
-    if (drug.doseKind === 'mgKgH') return weightNum ? (flowNum * workConc) / weightNum : null;
-    if (drug.isWeightBased) return weightNum ? (flowNum * workConc) / (weightNum * 60) : null;
-    return (flowNum * workConc) / 60; 
-  }, [workConc, flowNum, weightNum, drug]);
-
-  const targetFlow = useMemo(() => {
-    if (workConc === 0 || targetDoseNum === 0) return null;
-    if (drug.doseKind === 'mgKgH') return weightNum ? (targetDoseNum * weightNum) / workConc : null;
-    if (drug.isWeightBased) return weightNum ? (targetDoseNum * weightNum * 60) / workConc : null;
-    return (targetDoseNum * 60) / workConc;
-  }, [workConc, targetDoseNum, weightNum, drug]);
-
-  let doseColor = "var(--text-secondary)";
-  let dosePercent = 0;
-  let statusText = "Aguardando Dose";
-  let alertWarning = null;
-
-  const analyzedDose = targetDoseNum > 0 ? targetDoseNum : (currentDose || 0);
-
-  if (analyzedDose > 0) {
-    dosePercent = (analyzedDose / drug.doseMax) * 100;
-    if (dosePercent > 100) dosePercent = 100;
-    
-    if (analyzedDose < drug.doseMin) { doseColor = "var(--accent-yellow)"; statusText = "Subdose Protocolar"; }
-    else if (analyzedDose <= drug.doseMax) { doseColor = "var(--accent-green)"; statusText = "Faixa Segura"; }
-    else { doseColor = "var(--accent-red)"; statusText = "Dose Acima do Teto"; alertWarning = "Dose Teto Ultrapassada."; }
-  }
-
-  if (access === 'AVP' && volNum > 0) {
-    const baseConc = amtNum / volNum;
-    if (drug.maxAvpConc === 0) { alertWarning = "Contraindicado em Acesso Periférico"; doseColor = "var(--accent-red)"; }
-    else if (baseConc > drug.maxAvpConc && drug.maxAvpConc !== 999) { alertWarning = `Alta Conc. Periférica (Max: ${drug.maxAvpConc})`; }
-  }
-
-  const totalVis = useMemo(() => {
-    const dopa = toNumber(visValues.dopamina); const dobuta = toNumber(visValues.dobutamina);
-    const epi = toNumber(visValues.adrenalina); const norepi = toNumber(visValues.noradrenalina);
-    const milrinone = toNumber(visValues.milrinona);
-    const vasoUImin = toNumber(visValues.vasopressina);
-    const vasoKGmin = weightNum ? (vasoUImin / weightNum) : 0;
-
-    return dopa + dobuta + (100 * epi) + (100 * norepi) + (10 * milrinone) + (10000 * vasoKGmin);
-  }, [visValues, weightNum]);
-
-  const copyPrescription = () => {
-    const report = `RELATÓRIO CLÍNICO - DVA\nDroga: ${drug.name}\nPeso: ${weight || '--'} kg\nAcesso: ${access === 'CVC' ? 'Venoso Central' : 'Venoso Periférico'}\nDiluição: ${amt} ${drug.unitAmt} em ${vol} mL\n\nVazão na Bomba: ${flow || (targetFlow ? targetFlow.toFixed(1) : '--')} mL/h\nDose Resultante: ${currentDose ? currentDose.toFixed(3) : (targetDose || '--')} ${drug.doseUnit}\n\n[SIMMples DVA]`;
-    navigator.clipboard.writeText(report);
-    alert("Prescrição copiada.");
+  const currentTone = rangeTone(currentDose, drug);
+  const doseValue = currentDose === null ? '--' : `${fmt(currentDose, doseDigits(drug))} ${drug.doseUnit}`;
+  const targetFlowValue = targetFlow === null ? '--' : `${fmt(targetFlow, flowDigits(targetFlow))} mL/h`;
+  const flowRange = minFlow === null || maxFlow === null ? 'Informe o peso' : `${fmt(minFlow, flowDigits(minFlow))}–${fmt(maxFlow, flowDigits(maxFlow))} mL/h`;
+  const midDose = drug.doseMin + ((drug.doseMax - drug.doseMin) / 2);
+  const currentStatus = !flow ? 'Preencha a vazão atual' : currentDose === null ? 'Dados insuficientes' : currentDose < drug.doseMin ? 'Abaixo da faixa' : currentDose > drug.doseMax ? 'Acima da faixa' : 'Dentro da faixa';
+  const targetStatus = targetDoseNumber === null ? 'Selecione ou digite uma dose alvo' : targetDoseNumber < drug.doseMin ? 'Dose alvo abaixo da faixa' : targetDoseNumber > drug.doseMax ? 'Dose alvo acima da faixa' : 'Dose alvo dentro da faixa';
+  const targetTone = rangeTone(targetDoseNumber, drug);
+  const applyDose = (dose) => {
+    setTargetDose(String(Number(dose.toFixed(4))));
+    focusRef(flowRef);
   };
+  const handleDrugChange = (value) => {
+    setDrugId(value);
+    setFlow('');
+    setTargetDose('');
+    focusRef(weightRef);
+  };
+  const clearDoseAndFlow = () => {
+    setFlow('');
+    setTargetDose('');
+    focusRef(targetDoseRef);
+  };
+  const newPatient = () => {
+    setWeight('');
+    setFlow('');
+    setTargetDose('');
+    focusRef(weightRef);
+  };
+
+  const report = `SIMMples Calc — DVA\nDroga: ${drug.name}\nAcesso selecionado: ${access === 'central' ? 'central' : 'periférico'}\nApresentação: ${drug.presentation}\nDiluição padrão: ${drug.dilution}\nConcentração: ${drug.concentrationLabel}\nFaixa usual: ${fmt(drug.doseMin, doseDigits(drug))} a ${fmt(drug.doseMax, doseDigits(drug))} ${drug.doseUnit}\nPeso: ${weight || '--'} kg\nFaixa de vazão calculada: ${flowRange}\nVazão atual: ${flow || '--'} mL/h\nDose estimada pela vazão: ${doseValue}\nDose alvo: ${targetDose || '--'} ${drug.doseUnit}\nVazão para dose alvo: ${targetFlowValue}\n${drug.bolus && bolus ? `Bolus: ${fmt(bolus.minMg,1)}–${fmt(bolus.maxMg,1)} mg = ${fmt(bolus.minMl,1)}–${fmt(bolus.maxMl,1)} mL em ${drug.bolus.minutes} min` : ''}\nObservação: ferramenta consultiva. Conferir protocolo local, diluição, bomba de infusão e dupla checagem.`;
 
   return (
     <>
-      <style>{`
-        :root { --bg-base: #020A1A; --brand-cyan: #00C9E8; --card-border: rgba(0, 201, 232, 0.2); --text-primary: #ffffff; --text-secondary: #8e9bb0; --accent-red: #ff453a; --accent-orange: #ff9f0a; --accent-yellow: #ffd60a; --accent-green: #30d158; --accent-purple: #bf5af2; --nav-bg: rgba(2, 10, 26, 0.95); }
-        .simm-app { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background-color: var(--bg-base); color: var(--text-primary); min-height: 100vh; padding: 20px 15px 120px 15px; max-width: 480px; margin: 0 auto; box-sizing: border-box; }
-        .simm-app * { box-sizing: border-box; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 10px 0; border-bottom: 1px solid rgba(0, 201, 232, 0.1); }
-        .brand-cluster { display: flex; align-items: center; gap: 12px; }
-        .app-logo { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--brand-cyan); }
-        .app-title { font-size: 18px; font-weight: 600; color: var(--brand-cyan); }
-        
-        .vis-badge { background: rgba(191, 90, 242, 0.15); border: 1px solid rgba(191, 90, 242, 0.3); color: var(--accent-purple); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-        
-        .toggle-container { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 4px; display: flex; position: relative; margin-bottom: 16px; border: 1px solid var(--card-border); }
-        .toggle-btn { flex: 1; text-align: center; padding: 10px 0; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; cursor: pointer; transition: 0.3s; z-index: 2; }
-        .toggle-btn.active { color: var(--brand-cyan); }
-        .toggle-slider { position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px); background: rgba(0, 201, 232, 0.15); border: 1px solid var(--brand-cyan); border-radius: 8px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1; }
-        
-        .section-title { font-size: 11px; font-weight: 700; color: var(--brand-cyan); text-transform: uppercase; margin: 24px 0 12px 0; letter-spacing: 1px; border-bottom: 1px solid rgba(0,201,232,0.1); padding-bottom: 6px; }
-        
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .input-group { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px; margin-bottom: 12px; transition: 0.3s; }
-        .input-group:focus-within { border-color: var(--brand-cyan); background: rgba(0, 201, 232, 0.05); }
-        .input-group.disabled { opacity: 0.4; pointer-events: none; }
-        .input-label { font-size: 9px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; display: block; font-weight: 600; }
-        .input-wrapper { display: flex; align-items: baseline; }
-        .simm-app select, .simm-app input { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: 16px; font-weight: 700; outline: none; appearance: none; }
-        .simm-app select option { background: var(--bg-base); color: var(--text-primary); }
-        .unit { font-size: 11px; font-weight: 500; color: var(--text-secondary); margin-left: 6px; }
-        
-        .info-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-        .pill { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 6px 12px; font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
-        .pill.danger { border-color: rgba(255, 69, 58, 0.4); color: var(--accent-red); background: rgba(255, 69, 58, 0.05); }
+      <Segmented value={activeTab} onChange={setActiveTab} options={tabOptions} />
 
-        .result-zone { background: rgba(0, 201, 232, 0.02); border: 1px solid var(--card-border); border-radius: 8px; padding: 20px; text-align: center; margin: 16px 0; }
-        .result-value { font-size: 32px; font-weight: 800; color: var(--brand-cyan); line-height: 1; margin-bottom: 8px; }
-        .result-unit-text { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-        
-        .status-bar-container { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 12px 0 8px 0; overflow: hidden; }
-        .status-bar-fill { height: 100%; transition: width 0.5s ease, background-color 0.5s ease; border-radius: 2px; }
+      {activeTab === 'calc' && (
+        <>
+          <section className="calc-spotlight" aria-label="Resumo rápido do cálculo">
+            <div className="calc-spotlight-top">
+              <div>
+                <span className="kicker">Resumo rápido</span>
+                <strong>{drug.name}</strong>
+                <small>{access === 'central' ? 'Acesso central' : 'Acesso periférico'} • {drug.concentrationLabel}</small>
+              </div>
+              <span className={`status-pill status-${targetTone}`}>{targetStatus}</span>
+            </div>
+            <div className="calc-flow-steps" aria-label="Fluxo do cálculo">
+              <span className="step-done">Droga</span>
+              <span className={weightNumber ? 'step-done' : 'step-active'}>Peso</span>
+              <span className={targetDoseNumber ? 'step-done' : weightNumber ? 'step-active' : ''}>Dose</span>
+              <span className={targetFlow ? 'step-done' : targetDoseNumber ? 'step-active' : ''}>Resultado</span>
+            </div>
+            <div className="calc-hero-result">
+              <span>Vazão para dose alvo</span>
+              <strong>{targetFlowValue}</strong>
+              <small>Faixa usual de vazão: {flowRange}</small>
+            </div>
+            <div className="calc-mini-grid">
+              <div><span>Dose pela vazão</span><strong>{doseValue}</strong><small>{currentStatus}</small></div>
+              <div><span>Equivalência</span><strong>{oneMlHText(drug, weightNumber)}</strong><small>Por 1 mL/h</small></div>
+            </div>
+          </section>
+          <Card title="Drogas Vasoativas" kicker="Dose ↔ vazão pela diluição padrão" className="clean-card">
+            <SelectField label="Droga" value={drugId} onChange={handleDrugChange} options={drugOptions} />
+            <Segmented value={access} onChange={setAccess} options={accessOptions} />
+            <div className="drug-summary top-gap">
+              <strong><Syringe size={16} /> {drug.name}</strong>
+              <span>{drug.presentation}</span>
+              <p>{drug.dilution}</p>
+              <div className="tag-list">
+                <span className="tag tag-success">{drug.concentrationLabel}</span>
+                <span className="tag">{fmt(drug.doseMin, doseDigits(drug))}–{fmt(drug.doseMax, doseDigits(drug))} {drug.doseUnit}</span>
+              </div>
+            </div>
+          </Card>
 
-        .alert-box { display: flex; align-items: center; gap: 10px; background: rgba(255, 69, 58, 0.1); border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 11px; font-weight: 600; color: var(--accent-red); text-transform: uppercase; }
+          <Card title="Cálculo automático" className="clean-card calc-main-card">
+            <div className="input-flow-hint">Use Enter/Próximo para avançar: peso → dose alvo → vazão atual.</div>
+            <div className="grid-2">
+              <NumberField ref={weightRef} label="Peso" value={weight} onChange={setWeight} unit="kg" placeholder="70" onEnter={() => focusRef(targetDoseRef)} />
+              <NumberField ref={targetDoseRef} label={`Dose alvo (${drug.doseUnit})`} value={targetDose} onChange={setTargetDose} unit={drug.doseUnit} placeholder={`${drug.doseMin}`} onEnter={() => focusRef(flowRef)} />
+            </div>
+            <div className="grid-2 top-gap">
+              <NumberField ref={flowRef} label="Vazão atual" value={flow} onChange={setFlow} unit="mL/h" placeholder="ex: 12" enterKeyHint="done" />
+              <Result label="Vazão para dose alvo" value={targetFlowValue} tone={targetTone} helper={targetStatus} />
+            </div>
+            <div className="dose-shortcuts" aria-label="Atalhos de dose">
+              <button type="button" onClick={() => applyDose(drug.doseMin)}>Mínima: {fmt(drug.doseMin, doseDigits(drug))}</button>
+              <button type="button" onClick={() => applyDose(midDose)}>Meio: {fmt(midDose, doseDigits(drug))}</button>
+              <button type="button" onClick={() => applyDose(drug.doseMax)}>Máxima: {fmt(drug.doseMax, doseDigits(drug))}</button>
+            </div>
+            <div className="calc-action-row">
+              <button type="button" className="secondary-button compact-action" onClick={clearDoseAndFlow}><Eraser size={16} /> Limpar dose/vazão</button>
+              <button type="button" className="secondary-button compact-action" onClick={newPatient}><RotateCcw size={16} /> Novo paciente</button>
+            </div>
+            {needsWeight(drug) && !weightNumber && <div className="notice-box top-gap">Informe o peso para calcular dose por kg e faixa de vazão.</div>}
+            <div className="grid-3 top-gap">
+              <Result label="Faixa de vazão" value={flowRange} helper="Pela faixa usual informada" />
+              <Result label="Dose pela vazão" value={doseValue} tone={currentTone} helper={flow ? 'Comparada à faixa usual' : 'Preencha a vazão atual'} />
+              <Result label="Equivalência" value={oneMlHText(drug, weightNumber)} />
+            </div>
+            {individualVis !== null && (
+              <Result label="VIS estimado desta droga" value={fmt(individualVis, 1)} helper="Estimativa pelo valor calculado acima" />
+            )}
+            {drug.bolus && (
+              <div className="notice-box top-gap">
+                <strong>Bolus informado no protocolo:</strong>{' '}
+                {bolus ? `${fmt(bolus.minMg,1)}–${fmt(bolus.maxMg,1)} mg = ${fmt(bolus.minMl,1)}–${fmt(bolus.maxMl,1)} mL em ${drug.bolus.minutes} min. Equivalente: ${fmt(bolus.minFlowEq,0)}–${fmt(bolus.maxFlowEq,0)} mL/h durante ${drug.bolus.minutes} min.` : 'informe peso para calcular volume.'}
+              </div>
+            )}
+            <div className="notice-box top-gap"><AlertTriangle size={16} /> Ferramenta consultiva baseada nos parâmetros fornecidos. Conferir diluição preparada, bomba, concentração final, acesso e dupla checagem.</div>
+          </Card>
 
-        .btn-primary { width: 100%; background: var(--brand-cyan); color: #000; border: none; border-radius: 8px; padding: 14px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; background: var(--nav-bg); border-top: 1px solid rgba(0, 201, 232, 0.2); padding-bottom: env(safe-area-inset-bottom); z-index: 100; }
-        .nav-container { display: flex; width: 100%; max-width: 480px; }
-        .nav-item { flex: 1; padding: 14px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); cursor: pointer; transition: 0.3s; }
-        .nav-item.active { color: var(--brand-cyan); }
-        .nav-item svg { width: 20px; height: 20px; stroke-width: 2; }
-        .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; }
-        
-        .tab-fade { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
+          <Card title="Tabela de Titulação" className="clean-card">
+            <details className="calc-details">
+              <summary>Ver tabela de titulação</summary>
+              <div className="calc-table-wrap top-gap">
+                <table className="calc-table">
+                  <thead>
+                    <tr>
+                      <th>Dose</th>
+                      <th>Vazão</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {titrationRows(drug, weightNumber).map((row) => (
+                      <tr key={`${drug.id}-${row.dose}`}>
+                        <td>{fmt(row.dose, doseDigits(drug))} {drug.doseUnit}</td>
+                        <td>{row.flow === null ? 'Informe o peso' : `${fmt(row.flow, flowDigits(row.flow))} mL/h`}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+            <p className="clinical-text top-gap">{drug.note}</p>
+            <CopyButton text={report}>Copiar cálculo / prescrição</CopyButton>
+          </Card>
+        </>
+      )}
 
-      <div className="simm-app">
-        <div className="top-bar">
-          <div className="brand-cluster">
-            {/* Pode usar o seu logo aqui se a imagem existir no seu projeto */}
-            <img src="./Logo_1.121-ezgif.com-resize.png" alt="SIMM" className="app-logo" style={{display: 'none'}} />
-            <div className="app-title">SIMMples DVA</div>
+      {activeTab === 'vis' && (
+        <Card title="VIS" kicker="Vasoactive-Inotropic Score" className="clean-card">
+          <div className="notice-box">Preencha as doses atuais. Para adrenalina, noradrenalina, dopamina, dobutamina e milrinone use mcg/kg/min. Para vasopressina use UI/kg/min.</div>
+          <div className="grid-2 top-gap">
+            <NumberField ref={visRefs.dopamina} label="Dopamina" value={visValues.dopamina} onChange={(value) => setVisValues((old) => ({ ...old, dopamina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.dobutamina)} />
+            <NumberField ref={visRefs.dobutamina} label="Dobutamina" value={visValues.dobutamina} onChange={(value) => setVisValues((old) => ({ ...old, dobutamina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.adrenalina)} />
+            <NumberField ref={visRefs.adrenalina} label="Adrenalina" value={visValues.adrenalina} onChange={(value) => setVisValues((old) => ({ ...old, adrenalina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.noradrenalina)} />
+            <NumberField ref={visRefs.noradrenalina} label="Noradrenalina" value={visValues.noradrenalina} onChange={(value) => setVisValues((old) => ({ ...old, noradrenalina: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.milrinone)} />
+            <NumberField ref={visRefs.milrinone} label="Milrinone" value={visValues.milrinone} onChange={(value) => setVisValues((old) => ({ ...old, milrinone: value }))} unit="mcg/kg/min" onEnter={() => focusRef(visRefs.vasopressina)} />
+            <NumberField ref={visRefs.vasopressina} label="Vasopressina" value={visValues.vasopressina} onChange={(value) => setVisValues((old) => ({ ...old, vasopressina: value }))} unit="UI/kg/min" enterKeyHint="done" />
           </div>
-          {totalVis > 0 && (
-            <div className="vis-badge" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--accent-purple)', borderColor: totalVis > 15 ? 'rgba(255,69,58,0.4)' : 'rgba(191,90,242,0.3)' }}>
-              VIS: {totalVis.toFixed(1)}
-            </div>
-          )}
-        </div>
+          <Result label="VIS total" value={fmt(totalVis, 1)} helper="Dopa + dobuta + 100×adrenalina + 100×noradrenalina + 10×milrinone + 10000×vasopressina" />
+          <CopyButton text={`SIMMples Calc — VIS\nDopamina: ${visValues.dopamina || 0}\nDobutamina: ${visValues.dobutamina || 0}\nAdrenalina: ${visValues.adrenalina || 0}\nNoradrenalina: ${visValues.noradrenalina || 0}\nMilrinone: ${visValues.milrinone || 0}\nVasopressina: ${visValues.vasopressina || 0}\nVIS total: ${fmt(totalVis, 1)}`}>Copiar VIS</CopyButton>
+        </Card>
+      )}
 
-        {/* ABA 1: CALCULADORA DE INFUSÃO */}
-        {activeTab === 'calc' && (
-          <div className="tab-fade">
-            <div className="toggle-container">
-              <div className={`toggle-btn ${access === 'CVC' ? 'active' : ''}`} onClick={() => setAccess('CVC')}>Acesso Central</div>
-              <div className={`toggle-btn ${access === 'AVP' ? 'active' : ''}`} onClick={() => setAccess('AVP')}>Acesso Periférico</div>
-              <div className="toggle-slider" style={{ transform: access === 'CVC' ? 'translateX(0)' : 'translateX(100%)' }}></div>
-            </div>
-
-            <div className="input-group">
-              <span className="input-label">Droga Vasoativa</span>
-              <select value={drugId} onChange={(e) => setDrugId(e.target.value)}>
-                {DRUGS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-            </div>
-
-            <div className="info-pills">
-              {drug.pills.map((p, i) => (
-                <div key={i} className={`pill ${p.danger ? 'danger' : ''}`}>{p.text}</div>
-              ))}
-            </div>
-
-            <div className="grid-2">
-              <div className={`input-group ${!drug.isWeightBased ? 'disabled' : ''}`}>
-                <span className="input-label">Peso Corporal</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={weight} onChange={e => setWeight(e.target.value)} />
-                  <span className="unit">kg</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="section-title">Diluição (Personalizável)</div>
-            <div className="grid-2">
-              <div className="input-group">
-                <span className="input-label">Quantidade ({drug.unitAmt})</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={amt} onChange={e => setAmt(e.target.value)} />
-                  <span className="unit">{drug.unitAmt}</span>
-                </div>
-              </div>
-              <div className="input-group">
-                <span className="input-label">Volume do Soro</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={vol} onChange={e => setVol(e.target.value)} />
-                  <span className="unit">mL</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="section-title">Parâmetros de Infusão</div>
-            
-            <div className="grid-2">
-              <div className="input-group">
-                <span className="input-label">Dose Alvo</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={targetDose} onChange={e => { setTargetDose(e.target.value); setFlow(''); }} placeholder={String(drug.doseMin)} />
-                </div>
-                <span className="unit" style={{marginLeft: 0, marginTop: '4px', display: 'block'}}>{drug.doseUnit}</span>
-              </div>
-              <div className="input-group">
-                <span className="input-label">Vazão Atual</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={flow} onChange={e => { setFlow(e.target.value); setTargetDose(''); }} placeholder="Ex: 10" />
-                  <span className="unit">mL/h</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="result-zone">
-              <div className="result-unit-text">Resultado Clínico</div>
-              {targetDoseNum > 0 ? (
-                 <div className="result-value">{targetFlow !== null ? targetFlow.toFixed(1) : '--'} <span style={{fontSize: '14px', color: 'var(--text-secondary)'}}>mL/h</span></div>
-              ) : (
-                 <div className="result-value">{currentDose !== null ? currentDose.toFixed(3) : '--'} <span style={{fontSize: '14px', color: 'var(--text-secondary)'}}>{drug.doseUnit}</span></div>
-              )}
-              
-              <div className="status-bar-container">
-                <div className="status-bar-fill" style={{ width: `${dosePercent}%`, backgroundColor: doseColor }}></div>
-              </div>
-              <div className="result-unit-text" style={{ color: doseColor }}>{statusText}</div>
-
-              {alertWarning && (
-                <div className="alert-box">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  {alertWarning}
-                </div>
-              )}
-            </div>
-
-            <button className="btn-primary" onClick={copyPrescription}>Copiar Prescrição</button>
+      {activeTab === 'protocol' && (
+        <Card title="Protocolo carregado" kicker="Parâmetros fornecidos" className="clean-card">
+          <div className="protocol-list">
+            {DRUGS.map((item) => (
+              <article key={item.id} className="mini-card">
+                <strong><ClipboardList size={16} /> {item.name}</strong>
+                <span>{item.presentation}</span>
+                <p>{item.dilution}</p>
+                <small>Concentração: {item.concentrationLabel} • Faixa: {fmt(item.doseMin, doseDigits(item))} a {fmt(item.doseMax, doseDigits(item))} {item.doseUnit}</small>
+                {item.bolus && <small>Bolus: {item.bolus.min} a {item.bolus.max} {item.bolus.unit} em {item.bolus.minutes} min</small>}
+              </article>
+            ))}
           </div>
-        )}
-
-        {/* ABA 2: ESCORE VIS */}
-        {activeTab === 'vis' && (
-          <div className="tab-fade">
-            <div className="section-title">Vasoactive-Inotropic Score (VIS)</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-              Insira as taxas de infusão atuais (em mcg/kg/min ou UI/min) para determinação do prognóstico de choque.
-            </div>
-
-            <div className="grid-2">
-              <div className="input-group">
-                <span className="input-label">Noradrenalina</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={visValues.noradrenalina} onChange={e => setVisValues({ ...visValues, noradrenalina: e.target.value })} placeholder="0.0" />
-                </div>
-              </div>
-              <div className="input-group">
-                <span className="input-label">Adrenalina</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={visValues.adrenalina} onChange={e => setVisValues({ ...visValues, adrenalina: e.target.value })} placeholder="0.0" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid-2">
-              <div className="input-group">
-                <span className="input-label">Vasopressina</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={visValues.vasopressina} onChange={e => setVisValues({ ...visValues, vasopressina: e.target.value })} placeholder="0.0" />
-                </div>
-              </div>
-              <div className="input-group">
-                <span className="input-label">Dobutamina</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={visValues.dobutamina} onChange={e => setVisValues({ ...visValues, dobutamina: e.target.value })} placeholder="0.0" />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid-2">
-              <div className="input-group">
-                <span className="input-label">Milrinona</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={visValues.milrinona} onChange={e => setVisValues({ ...visValues, milrinona: e.target.value })} placeholder="0.0" />
-                </div>
-              </div>
-              <div className="input-group">
-                <span className="input-label">Dopamina</span>
-                <div className="input-wrapper">
-                  <input type="number" inputMode="numeric" value={visValues.dopamina} onChange={e => setVisValues({ ...visValues, dopamina: e.target.value })} placeholder="0.0" />
-                </div>
-              </div>
-            </div>
-
-            <div className="result-zone">
-              <div className="result-unit-text">Score Computado</div>
-              <div className="result-value" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--brand-cyan)' }}>{totalVis.toFixed(1)}</div>
-              <div className="status-bar-container">
-                <div className="status-bar-fill" style={{ width: `${Math.min((totalVis / 40) * 100, 100)}%`, backgroundColor: totalVis > 15 ? 'var(--accent-red)' : 'var(--brand-cyan)' }}></div>
-              </div>
-              <div className="result-unit-text" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--text-secondary)', marginTop: '8px' }}>
-                {totalVis > 15 ? "Alto Impacto na Mortalidade Relativa" : "Suporte Hemodinâmico Otimizado"}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* NAVEGAÇÃO INFERIOR */}
-      <div className="bottom-nav">
-        <div className="nav-container">
-          <div className={`nav-item ${activeTab === 'calc' ? 'active' : ''}`} onClick={() => setActiveTab('calc')}>
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><line x1="8" y1="10" x2="16" y2="10" /><line x1="8" y1="14" x2="16" y2="14" /><line x1="12" y1="8" x2="12" y2="16" /></svg>
-            <span className="nav-label">Infusão</span>
-          </div>
-          <div className={`nav-item ${activeTab === 'vis' ? 'active' : ''}`} onClick={() => setActiveTab('vis')}>
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-            <span className="nav-label">Score VIS</span>
-          </div>
-        </div>
-      </div>
+        </Card>
+      )}
     </>
   );
 }

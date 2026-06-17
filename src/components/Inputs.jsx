@@ -19,8 +19,9 @@ export const NumberField = forwardRef(function NumberField({
       <div className="field-box">
         <input
           ref={ref}
-          type="number"
+          type="text"
           inputMode="decimal"
+          pattern="[0-9.,-]*"
           enterKeyHint={enterKeyHint}
           autoComplete={autoComplete}
           value={value}
@@ -28,7 +29,11 @@ export const NumberField = forwardRef(function NumberField({
           step={step}
           min={min}
           max={max}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const raw = e.target.value;
+            const accepted = raw.replace(/[^0-9.,-]/g, '');
+            onChange(accepted);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && onEnter) {
               e.preventDefault();
