@@ -13,10 +13,27 @@ const DRUGS = [
   { id: 'azul_metileno', name: 'Azul de Metileno', presentation: '10 mg/mL — ampola 10 mL', defaultAmt: 100, defaultVol: 500, unitAmt: 'mg', doseKind: 'mgKgH', doseMin: 0.25, doseMax: 2.0, doseUnit: 'mg/kg/h', visMultiplier: 0, isWeightBased: true, maxAvpConc: 999, chartSteps: [0.25, 0.5, 1.0, 1.5, 2.0], bolus: { min: 1.5, max: 2, unit: 'mg/kg', minutes: 10 }, pills: [{ text: "SG5 Exclusivo" }, { text: "Risco Serotoninérgico", danger: true }], note: 'Dose usual informada: bolus 1,5 a 2 mg/kg em 10 min; contínuo 0,5 a 4 mg/kg/h.' }
 ];
 
+// Conversor interno: Transforma a vírgula do input no ponto que a matemática exige
 function toNumber(value) {
+  if (!value) return 0;
   const number = parseFloat(String(value).replace(',', '.'));
-  return number > 0 ? number : 0;
+  return isNaN(number) ? 0 : number;
 }
+
+// Máscara UX de Vírgula Universal
+const formatDecimal = (val) => {
+  if (!val) return '';
+  // Transforma ponto em vírgula instantaneamente
+  let cleaned = val.replace(/\./g, ',');
+  // Remove qualquer letra ou símbolo (deixa só número e vírgula)
+  cleaned = cleaned.replace(/[^0-9,]/g, '');
+  // Impede duas vírgulas no mesmo número
+  const parts = cleaned.split(',');
+  if (parts.length > 2) {
+    cleaned = parts[0] + ',' + parts.slice(1).join('');
+  }
+  return cleaned;
+};
 
 export function CalcApp() {
   const [activeTab, setActiveTab] = useState('calc');
@@ -32,7 +49,6 @@ export function CalcApp() {
   
   const [visValues, setVisValues] = useState({ dopamina: '', dobutamina: '', adrenalina: '', noradrenalina: '', milrinona: '', vasopressina: '' });
 
-  // Refs de foco para navegação por teclado premium
   const weightRef = useRef(null);
   const targetDoseRef = useRef(null);
   const flowRef = useRef(null);
@@ -40,8 +56,9 @@ export function CalcApp() {
   const drug = useMemo(() => DRUGS.find((item) => item.id === drugId) || DRUGS[0], [drugId]);
 
   useEffect(() => {
-    setAmt(String(drug.defaultAmt));
-    setVol(String(drug.defaultVol));
+    // Ao trocar a droga, preenchemos os padrões usando o formatDecimal para garantir o formato correto (caso seja decimal)
+    setAmt(formatDecimal(String(drug.defaultAmt)));
+    setVol(formatDecimal(String(drug.defaultVol)));
     setTargetDose('');
     setFlow('');
   }, [drug]);
@@ -52,7 +69,6 @@ export function CalcApp() {
   const targetDoseNum = toNumber(targetDose);
   const flowNum = toNumber(flow);
 
-  // Formatação de Casas Decimais Inteligentes
   const doseDigits = useMemo(() => {
     if (drug.doseKind === 'uiMin') return 3;
     if (drug.doseKind === 'mcgKgMin' && drug.doseMax <= 3) return 3;
@@ -66,7 +82,6 @@ export function CalcApp() {
     return baseConc * 1000; 
   }, [amtNum, volNum, drug]);
 
-  // Cálculos Bidirecionais
   const currentDose = useMemo(() => {
     if (workConc === 0 || flowNum === 0) return null;
     if (drug.doseKind === 'mgKgH') return weightNum ? (flowNum * workConc) / weightNum : null;
@@ -81,7 +96,6 @@ export function CalcApp() {
     return (targetDoseNum * 60) / workConc;
   }, [workConc, targetDoseNum, weightNum, drug]);
 
-  // Lógica Dinâmica do Bolus (Ataque)
   const calculatedBolus = useMemo(() => {
     if (!drug.bolus || weightNum <= 0 || workConc === 0) return null;
     const baseConcMgMl = amtNum / volNum;
@@ -92,7 +106,6 @@ export function CalcApp() {
     return { minMg, maxMg, minMl, maxMl, minutes: drug.bolus.minutes };
   }, [drug, weightNum, amtNum, volNum, workConc]);
 
-  // Tabela de Titulação Baseada nos Steps do Core
   const titrationRows = useMemo(() => {
     if (workConc === 0) return [];
     return drug.chartSteps.map((step) => {
@@ -137,8 +150,11 @@ export function CalcApp() {
     return dopa + dobuta + (100 * epi) + (100 * norepi) + (10 * milrinone) + (10000 * vasoKGmin);
   }, [visValues, weightNum]);
 
+  // Função para formatar os resultados do relatório com vírgula
+  const formatReportNumber = (num, digits = 1) => String(num.toFixed(digits)).replace('.', ',');
+
   const copyPrescription = () => {
-    const report = `RELATÓRIO CLÍNICO - INFUSÕES CRÍTICAS\n\nDroga Utilizada: ${drug.name}\nPeso Operacional: ${weight || '--'} kg\nAcesso Disponível: ${access === 'CVC' ? 'Via Central' : 'Via Periférica'}\nMontagem da Solução: ${amt} ${drug.unitAmt} em ${vol} mL\n\nParâmetros Ajustados:\n• Vazão da Bomba: ${flow || (targetFlow ? targetFlow.toFixed(1) : '--')} mL/h\n• Entrega de Dose: ${currentDose ? currentDose.toFixed(doseDigits) : (targetDose || '--')} ${drug.doseUnit}\n\n[SIMMples DVA - Dashboard de Elite]`;
+    const report = `RELATÓRIO CLÍNICO - INFUSÕES CRÍTICAS\n\nDroga Utilizada: ${drug.name}\nPeso Operacional: ${weight || '--'} kg\nAcesso Disponível: ${access === 'CVC' ? 'Via Central' : 'Via Periférica'}\nMontagem da Solução: ${amt} ${drug.unitAmt} em ${vol} mL\n\nParâmetros Ajustados:\n• Vazão da Bomba: ${flow || (targetFlow ? formatReportNumber(targetFlow) : '--')} mL/h\n• Entrega de Dose: ${currentDose ? formatReportNumber(currentDose, doseDigits) : (targetDose || '--')} ${drug.doseUnit}\n\n[SIMMples DVA - Dashboard de Elite]`;
     navigator.clipboard.writeText(report);
     alert("Prescrição copiada com sucesso.");
   };
@@ -179,7 +195,8 @@ export function CalcApp() {
         .input-box.disabled { opacity: 0.25; pointer-events: none; }
         .input-label { font-size: 9px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 5px; display: block; font-weight: 700; letter-spacing: 0.3px; }
         .input-wrapper { display: flex; align-items: baseline; }
-        .simm-wrapper select, .simm-wrapper input { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: 17px; font-weight: 700; outline: none; appearance: none; }
+        /* Alterado input de number para text suportar a máscara customizada */
+        .simm-wrapper select, .simm-wrapper input[type="text"] { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: 17px; font-weight: 700; outline: none; appearance: none; }
         .simm-wrapper select option { background: #020A1A; color: #fff; }
         .unit-tag { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-left: 4px; }
         
@@ -230,7 +247,7 @@ export function CalcApp() {
             </div>
             {totalVis > 0 && (
               <div className="floating-vis" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--accent-purple)', borderColor: totalVis > 15 ? 'rgba(255,69,58,0.4)' : 'rgba(191,90,242,0.3)' }}>
-                VIS Load: {totalVis.toFixed(1)}
+                VIS Load: {formatReportNumber(totalVis)}
               </div>
             )}
           </div>
@@ -269,7 +286,7 @@ export function CalcApp() {
                 <div className={`input-box ${!drug.isWeightBased ? 'disabled' : ''}`}>
                   <span className="input-label">Peso Corporal</span>
                   <div className="input-wrapper">
-                    <input ref={weightRef} type="number" inputMode="numeric" value={weight} onChange={e => setWeight(e.target.value)} onKeyDown={(e) => handleKeyDown(e, targetDoseRef)} />
+                    <input ref={weightRef} type="text" inputMode="decimal" value={weight} onChange={e => setWeight(formatDecimal(e.target.value))} onKeyDown={(e) => handleKeyDown(e, targetDoseRef)} />
                     <span className="unit-tag">kg</span>
                   </div>
                 </div>
@@ -280,14 +297,14 @@ export function CalcApp() {
                 <div className="input-box">
                   <span className="input-label">Massa ({drug.unitAmt})</span>
                   <div className="input-wrapper">
-                    <input type="number" inputMode="numeric" value={amt} onChange={e => setAmt(e.target.value)} />
+                    <input type="text" inputMode="decimal" value={amt} onChange={e => setAmt(formatDecimal(e.target.value))} />
                     <span className="unit-tag">{drug.unitAmt}</span>
                   </div>
                 </div>
                 <div className="input-box">
                   <span className="input-label">Volume Total</span>
                   <div className="input-wrapper">
-                    <input type="number" inputMode="numeric" value={vol} onChange={e => setVol(e.target.value)} />
+                    <input type="text" inputMode="decimal" value={vol} onChange={e => setVol(formatDecimal(e.target.value))} />
                     <span className="unit-tag">mL</span>
                   </div>
                 </div>
@@ -298,14 +315,14 @@ export function CalcApp() {
                 <div className="input-box">
                   <span className="input-label">Dose Alvo</span>
                   <div className="input-wrapper">
-                    <input ref={targetDoseRef} type="number" inputMode="numeric" value={targetDose} onChange={e => { setTargetDose(e.target.value); setFlow(''); }} onKeyDown={(e) => handleKeyDown(e, flowRef)} placeholder={String(drug.doseMin)} />
+                    <input ref={targetDoseRef} type="text" inputMode="decimal" value={targetDose} onChange={e => { setTargetDose(formatDecimal(e.target.value)); setFlow(''); }} onKeyDown={(e) => handleKeyDown(e, flowRef)} placeholder={formatReportNumber(drug.doseMin)} />
                   </div>
                   <span className="unit-tag" style={{ marginLeft: 0, marginTop: '2px', display: 'block', fontSize: '10px' }}>{drug.doseUnit}</span>
                 </div>
                 <div className="input-box">
                   <span className="input-label">Vazão Corrente</span>
                   <div className="input-wrapper">
-                    <input ref={flowRef} type="number" inputMode="numeric" value={flow} onChange={e => { setFlow(e.target.value); setTargetDose(''); }} placeholder="mL/h" />
+                    <input ref={flowRef} type="text" inputMode="decimal" value={flow} onChange={e => { setFlow(formatDecimal(e.target.value)); setTargetDose(''); }} placeholder="mL/h" />
                     <span className="unit-tag">mL/h</span>
                   </div>
                 </div>
@@ -314,9 +331,9 @@ export function CalcApp() {
               <div className={`glow-result-zone ${isDangerZone ? 'danger-alert' : (alertWarning ? 'warning-alert' : '')}`}>
                 <div className="display-unit">Visor de Entrega Final</div>
                 {targetDoseNum > 0 ? (
-                   <div className="display-value">{targetFlow !== null ? targetFlow.toFixed(1) : '--'}<span style={{fontSize: '16px', fontWeight: '500', marginLeft: '4px'}}>mL/h</span></div>
+                   <div className="display-value">{targetFlow !== null ? formatReportNumber(targetFlow) : '--'}<span style={{fontSize: '16px', fontWeight: '500', marginLeft: '4px'}}>mL/h</span></div>
                 ) : (
-                   <div className="display-value">{currentDose !== null ? currentDose.toFixed(doseDigits) : '--'}<span style={{fontSize: '14px', fontWeight: '500', marginLeft: '4px'}}>{drug.doseKind === 'uiMin' ? 'UI/min' : 'mcg/kg/min'}</span></div>
+                   <div className="display-value">{currentDose !== null ? formatReportNumber(currentDose, doseDigits) : '--'}<span style={{fontSize: '14px', fontWeight: '500', marginLeft: '4px'}}>{drug.doseKind === 'uiMin' ? 'UI/min' : 'mcg/kg/min'}</span></div>
                 )}
                 
                 <div className="premium-progress-track">
@@ -332,13 +349,12 @@ export function CalcApp() {
                 )}
               </div>
 
-              {/* RETORNO DO BOLUS PROTOCOLAR */}
               {calculatedBolus && (
-                <div className="checklist" style={{ borderLeftColor: 'var(--accent-purple)', background: 'rgba(191, 90, 242, 0.03)' }}>
-                  <span className="checklist-title" style={{ color: 'var(--accent-purple)' }}>Ataque / Bolus Recomendado</span>
-                  • Massa total: <strong>{calculatedBolus.minMg.toFixed(1)} a {calculatedBolus.maxMg.toFixed(1)} mg</strong><br/>
-                  • Volume da solução: <strong>{calculatedBolus.minMl.toFixed(1)} a {calculatedBolus.maxMl.toFixed(1)} mL</strong><br/>
-                  • Tempo de infusão: Administrar em <strong>{calculatedBolus.minutes} minutos</strong>.
+                <div className="checklist" style={{ borderLeftColor: 'var(--accent-purple)', background: 'rgba(191, 90, 242, 0.03)', padding: '16px', borderRadius: '12px', marginTop: '16px', fontSize: '13px', lineHeight: '1.5' }}>
+                  <span className="checklist-title" style={{ color: 'var(--accent-purple)', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Ataque / Bolus Recomendado</span>
+                  • Massa total: <strong style={{ color: 'var(--text-primary)' }}>{formatReportNumber(calculatedBolus.minMg)} a {formatReportNumber(calculatedBolus.maxMg)} mg</strong><br/>
+                  • Volume da solução: <strong style={{ color: 'var(--text-primary)' }}>{formatReportNumber(calculatedBolus.minMl)} a {formatReportNumber(calculatedBolus.maxMl)} mL</strong><br/>
+                  • Tempo de infusão: Administrar em <strong style={{ color: 'var(--text-primary)' }}>{calculatedBolus.minutes} minutos</strong>.
                 </div>
               )}
 
@@ -364,15 +380,15 @@ export function CalcApp() {
                 <tbody>
                   {titrationRows.map((row, i) => (
                     <tr key={i}>
-                      <td><strong>{row.dose.toFixed(doseDigits)}</strong> {drug.doseUnit}</td>
-                      <td>{row.flow > 0 ? `${row.flow.toFixed(1)} mL/h` : 'Parâmetros insuficientes'}</td>
+                      <td><strong>{formatReportNumber(row.dose, doseDigits)}</strong> {drug.doseUnit}</td>
+                      <td>{row.flow > 0 ? `${formatReportNumber(row.flow)} mL/h` : 'Parâmetros insuficientes'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <div className="checklist" style={{ marginTop: '20px' }}>
-                <span className="checklist-title">Notas de Beira-Leito</span>
+              <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(0, 201, 232, 0.05)', borderLeft: '2px solid var(--brand-cyan)', borderRadius: '8px', fontSize: '13px', lineHeight: '1.5', color: '#ddd' }}>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--brand-cyan)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Notas de Beira-Leito</span>
                 {drug.note}
               </div>
             </div>
@@ -387,23 +403,23 @@ export function CalcApp() {
               </div>
 
               <div className="grid-2">
-                <div className="input-box"><span className="input-label">Nora (mcg/kg/min)</span><div className="input-wrapper"><input type="number" inputMode="decimal" value={visValues.noradrenalina} onChange={e => setVisValues({ ...visValues, noradrenalina: e.target.value })} placeholder="0.0" /></div></div>
-                <div className="input-box"><span className="input-label">Adrenalina (mcg/kg/min)</span><div className="input-wrapper"><input type="number" inputMode="decimal" value={visValues.adrenalina} onChange={e => setVisValues({ ...visValues, adrenalina: e.target.value })} placeholder="0.0" /></div></div>
+                <div className="input-box"><span className="input-label">Nora (mcg/kg/min)</span><div className="input-wrapper"><input type="text" inputMode="decimal" value={visValues.noradrenalina} onChange={e => setVisValues({ ...visValues, noradrenalina: formatDecimal(e.target.value) })} placeholder="0,0" /></div></div>
+                <div className="input-box"><span className="input-label">Adrenalina (mcg/kg/min)</span><div className="input-wrapper"><input type="text" inputMode="decimal" value={visValues.adrenalina} onChange={e => setVisValues({ ...visValues, adrenalina: formatDecimal(e.target.value) })} placeholder="0,0" /></div></div>
               </div>
               
               <div className="grid-2">
-                <div className="input-box"><span className="input-label">Vasopressina (UI/min)</span><div className="input-wrapper"><input type="number" inputMode="decimal" value={visValues.vasopressina} onChange={e => setVisValues({ ...visValues, vasopressina: e.target.value })} placeholder="0.0" /></div></div>
-                <div className="input-box"><span className="input-label">Dobutamina (mcg/kg/min)</span><div className="input-wrapper"><input type="number" inputMode="decimal" value={visValues.dobutamina} onChange={e => setVisValues({ ...visValues, dobutamina: e.target.value })} placeholder="0.0" /></div></div>
+                <div className="input-box"><span className="input-label">Vasopressina (UI/min)</span><div className="input-wrapper"><input type="text" inputMode="decimal" value={visValues.vasopressina} onChange={e => setVisValues({ ...visValues, vasopressina: formatDecimal(e.target.value) })} placeholder="0,0" /></div></div>
+                <div className="input-box"><span className="input-label">Dobutamina (mcg/kg/min)</span><div className="input-wrapper"><input type="text" inputMode="decimal" value={visValues.dobutamina} onChange={e => setVisValues({ ...visValues, dobutamina: formatDecimal(e.target.value) })} placeholder="0,0" /></div></div>
               </div>
 
               <div className="grid-2">
-                <div className="input-box"><span className="input-label">Milrinona (mcg/kg/min)</span><div className="input-wrapper"><input type="number" inputMode="decimal" value={visValues.milrinona} onChange={e => setVisValues({ ...visValues, milrinona: e.target.value })} placeholder="0.0" /></div></div>
-                <div className="input-box"><span className="input-label">Dopamina (mcg/kg/min)</span><div className="input-wrapper"><input type="number" inputMode="decimal" value={visValues.dopamina} onChange={e => setVisValues({ ...visValues, dopamina: e.target.value })} placeholder="0.0" /></div></div>
+                <div className="input-box"><span className="input-label">Milrinona (mcg/kg/min)</span><div className="input-wrapper"><input type="text" inputMode="decimal" value={visValues.milrinona} onChange={e => setVisValues({ ...visValues, milrinona: formatDecimal(e.target.value) })} placeholder="0,0" /></div></div>
+                <div className="input-box"><span className="input-label">Dopamina (mcg/kg/min)</span><div className="input-wrapper"><input type="text" inputMode="decimal" value={visValues.dopamina} onChange={e => setVisValues({ ...visValues, dopamina: formatDecimal(e.target.value) })} placeholder="0,0" /></div></div>
               </div>
 
               <div className={`glow-result-zone ${totalVis > 15 ? 'danger-alert' : ''}`}>
                 <div className="display-unit">Score de Carga Hemodinâmica</div>
-                <div className="display-value" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--brand-cyan)' }}>{totalVis.toFixed(1)}</div>
+                <div className="display-value" style={{ color: totalVis > 15 ? 'var(--accent-red)' : 'var(--brand-cyan)' }}>{formatReportNumber(totalVis)}</div>
                 <div className="premium-progress-track">
                   <div className="premium-progress-fill" style={{ width: `${Math.min((totalVis / 40) * 100, 100)}%`, backgroundColor: totalVis > 15 ? 'var(--accent-red)' : 'var(--brand-cyan)' }}></div>
                 </div>
@@ -417,7 +433,6 @@ export function CalcApp() {
         </div>
       </div>
 
-      {/* FOOTER NAVIGATION INTEGRADO */}
       <div className="bottom-suite-nav">
         <div className="nav-shell">
           <div className={`nav-tab-item ${activeTab === 'calc' ? 'active' : ''}`} onClick={() => setActiveTab('calc')}>
