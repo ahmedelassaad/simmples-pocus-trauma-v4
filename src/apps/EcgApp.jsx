@@ -344,10 +344,91 @@ const ECG_PEARLS = {
   'asystole': { firstLook: 'Confirme em mais de uma derivação e cheque cabos/ganho.', pitfall: 'Cabo solto e ganho inadequado podem simular assistolia.', action: 'Ritmo não chocável: seguir algoritmo após confirmar.' }
 };
 
-function searchMatch(item, q) {
-  if (!q) return true;
-  const text = [item.name, item.type, item.explain, item.leads, item.territory, item.intervals, ...item.features, ...item.criteria].join(' ').toLowerCase();
-  return text.includes(q.toLowerCase());
+const ECG_ALIASES = {
+  'torsades': ['torsade', 'torsades de pointes', 'torsade de pointes', 'tv polimorfica', 'taquicardia polimorfica', 'qt longo'],
+  'vf': ['fibrilacao ventricular', 'fibrilacao venticular', 'fv', 'ritmo chocavel'],
+  'vt': ['taquicardia ventricular', 'tv', 'qrs largo regular'],
+  'afib': ['fibrilacao atrial', 'fa', 'irregularmente irregular'],
+  'flutter': ['flutter atrial', 'serrilhado', 'dente de serra'],
+  'complete-avb': ['bav total', 'bloqueio av total', 'bloqueio atrioventricular completo', 'dissociacao av'],
+  'mobitz1': ['mobitz 1', 'wenckebach', 'bav segundo grau tipo 1'],
+  'mobitz2': ['mobitz 2', 'bav segundo grau tipo 2'],
+  'first-avb': ['bav primeiro grau', 'pr longo', 'bloqueio av primeiro grau'],
+  'stemi-anterior': ['iam anterior', 'infarto anterior', 'supra anterior', 'da proximal'],
+  'stemi-inferior': ['iam inferior', 'infarto inferior', 'supra inferior'],
+  'stemi-lateral': ['iam lateral', 'infarto lateral', 'supra lateral'],
+  'posterior': ['iam posterior', 'infarto posterior', 'v7 v9'],
+  'de-winter': ['de winter', 'dewinter', 'da oclusa sem supra'],
+  'wellens-a': ['wellens a', 't bifasica v2 v3'],
+  'wellens-b': ['wellens b', 't invertida v2 v4'],
+  'aslanger': ['aslanger', 'aslangher', 'aslanger pattern'],
+  'south-african-flag': ['africa do sul', 'bandeira da africa do sul', 'south african flag'],
+  'left-main': ['avr supra', 'tronco', 'multiarterial', 'infra difuso'],
+  'hyperk': ['hipercalemia', 'potassio alto', 't apiculada'],
+  'brugada': ['brugada', 'coved v1 v2'],
+  'wpw': ['wpw', 'wolf parkinson white', 'pre excitacao', 'onda delta'],
+  'rbbb': ['brd', 'bloqueio ramo direito'],
+  'lbbb': ['bre', 'bloqueio ramo esquerdo', 'sgarbossa']
+};
+
+function normalizeSearch(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    let previous = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const current = row[j];
+      row[j] = Math.min(
+        row[j] + 1,
+        row[j - 1] + 1,
+        previous + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+      previous = current;
+    }
+  }
+  return row[b.length];
+}
+
+function fuzzyTokenScore(queryToken, targetToken) {
+  if (!queryToken || !targetToken) return 0;
+  if (targetToken === queryToken) return 1;
+  if (targetToken.startsWith(queryToken) || queryToken.startsWith(targetToken)) return 0.92;
+  if (targetToken.includes(queryToken) || queryToken.includes(targetToken)) return 0.84;
+  const distance = levenshtein(queryToken, targetToken);
+  const ratio = 1 - distance / Math.max(queryToken.length, targetToken.length);
+  return ratio >= 0.58 ? ratio : 0;
+}
+
+function searchScore(item, query) {
+  const q = normalizeSearch(query);
+  if (!q) return item.tab === 'ritmos' ? 0.1 : 0;
+  const aliases = ECG_ALIASES[item.id] || [];
+  const source = normalizeSearch([
+    item.name, item.type, item.explain, item.leads, item.territory, item.intervals,
+    ...item.features, ...item.criteria, ...aliases
+  ].join(' '));
+  if (source.includes(q)) return 10 + q.length / 100;
+  const queryTokens = q.split(' ').filter(Boolean);
+  const sourceTokens = [...new Set(source.split(' ').filter(Boolean))];
+  let total = 0;
+  for (const queryToken of queryTokens) {
+    const best = sourceTokens.reduce((score, targetToken) => Math.max(score, fuzzyTokenScore(queryToken, targetToken)), 0);
+    if (best === 0) return 0;
+    total += best;
+  }
+  return total / queryTokens.length;
 }
 
 function compactList(items) {
@@ -357,11 +438,18 @@ function compactList(items) {
 export function EcgApp() {
   const [tab, setTab] = useState('ritmos');
   const [query, setQuery] = useState('');
-  const filtered = useMemo(() => ECG_PATTERNS.filter((item) => item.tab === tab && searchMatch(item, query)), [tab, query]);
+  const filtered = useMemo(() => {
+    if (!query.trim()) return ECG_PATTERNS.filter((item) => item.tab === tab);
+    return ECG_PATTERNS
+      .map((item) => ({ item, score: searchScore(item, query) }))
+      .filter(({ score }) => score >= 0.58)
+      .sort((a, b) => b.score - a.score)
+      .map(({ item }) => item);
+  }, [tab, query]);
   const [selectedId, setSelectedId] = useState('sinus');
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const selected = ECG_PATTERNS.find((item) => item.id === selectedId && item.tab === tab) || filtered[0] || ECG_PATTERNS[0];
+  const selected = ECG_PATTERNS.find((item) => item.id === selectedId) || filtered[0] || ECG_PATTERNS[0];
 
   const report = `SIMMples ECG\nPadrão selecionado: ${selected.name}\nGrupo: ${selected.type}\nDerivações/território: ${selected.leads}\nIntervalos: ${selected.intervals}\nAchados: ${selected.features.join('; ')}\nCritérios: ${selected.criteria.join('; ')}\nInterpretação: ${selected.explain}\nObservação: ${selected.territory}`;
 
@@ -369,10 +457,15 @@ export function EcgApp() {
     <div className="compact-module">
       <Segmented value={tab} onChange={(value) => { setTab(value); setSelectedId(''); }} options={tabs} />
       <Card className="compact-card" title="ECG dinâmico" kicker="Traçados vetoriais gerados no app">
-        <div className="search-box"><Search size={15} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar ritmo, IAM, Wellens, Aslanger..." /></div>
+        <div className="search-box"><Search size={15} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Busque por nome, sigla, achado ou mesmo com erro de digitação..." /></div>
+        <div className="ecg-search-meta">
+          <span>{query.trim() ? `${filtered.length} resultado(s) inteligente(s)` : 'Busca por nome, sigla, morfologia, derivação ou território'}</span>
+          {query && <button type="button" onClick={() => setQuery('')}>Limpar</button>}
+        </div>
+        {query.trim() && filtered.length === 0 && <div className="empty-state compact"><Search size={22}/><strong>Nenhum padrão encontrado</strong><span>Tente “TV”, “BAV”, “supra inferior”, “torsade” ou parte do nome.</span></div>}
         <div className="selector-scroll">
           {filtered.map((item) => (
-            <button key={item.id} type="button" className={selected.id === item.id ? 'selector-chip active' : 'selector-chip'} onClick={() => setSelectedId(item.id)}>
+            <button key={item.id} type="button" className={selected.id === item.id ? 'selector-chip active' : 'selector-chip'} onClick={() => { setSelectedId(item.id); setTab(item.tab); }}>
               <span>{item.name}</span><small>{item.type}</small>
             </button>
           ))}
