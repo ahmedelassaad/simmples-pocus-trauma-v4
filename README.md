@@ -79,3 +79,12 @@ A IA é uma camada consultiva e não substitui protocolo local, dupla checagem, 
 - Critérios práticos de reconhecimento por ritmo, bloqueio e padrão IAM/OMI.
 - Traçados SVG dinâmicos revisados para morfologia mais fidedigna por derivação.
 - Mantido todo o conteúdo da v12 e sem alterar cálculos/curvas do VENT.
+
+
+## Versão 17
+- FV e Torsades de Pointes com animação temporal real.
+- Controle de pausar/retomar e velocidade dos ECGs.
+- Todos os traçados de ECG permanecem dinâmicos.
+- Galeria de TC do AVC revisada com patologias compatíveis com as legendas e zoom.
+- SIMMples PED reformulado com paciente persistente, alertas rápidos, PEWS, cálculos por peso e hidratação.
+- Ajustes gerais de interface para reduzir rolagem e facilitar uso em celular.

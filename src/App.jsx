@@ -23,7 +23,7 @@ const apps = {
   iam: { title: 'SIMMples IAM', subtitle: 'Dor torácica, HEART/TIMI e OMI', icon: HeartPulse, component: IamApp },
   avc: { title: 'SIMMples AVC', subtitle: 'NIHSS, ABCD², LVO e ASPECTS', icon: Brain, component: AvcApp },
   ecg: { title: 'SIMMples ECG', subtitle: 'Ritmos, OMI e 12 derivações dinâmicas', icon: Activity, component: EcgApp },
-  ped: { title: 'SIMMples PED', subtitle: 'Triagem pediátrica, PEWS e hidratação', icon: Baby, component: PedApp },
+  ped: { title: 'SIMMples PED', subtitle: 'Triagem, PEWS, cálculos e hidratação', icon: Baby, component: PedApp },
   intox: { title: 'SIMMples INTOX', subtitle: 'Toxidromes, ECG tóxico e antídotos', icon: Pill, component: IntoxApp },
   peconha: { title: 'SIMMples PEÇONHA', subtitle: 'Animais peçonhentos e soroterapia', icon: Bug, component: PeconhaApp },
   trauma: { title: 'SIMMples TRAUMA', subtitle: 'Hemorragia oculta e choque', icon: Ambulance, component: TraumaApp },

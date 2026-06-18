@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Activity, AlertTriangle, HeartPulse, Search, MapPinned, Ruler, ListChecks, Waves } from 'lucide-react';
+import { Activity, AlertTriangle, HeartPulse, Search, MapPinned, Ruler, ListChecks, Waves, Pause, Play } from 'lucide-react';
 import { Card } from '../components/Layout.jsx';
 import { Segmented } from '../components/Inputs.jsx';
 import { CopyButton } from '../components/CopyButton.jsx';
@@ -359,6 +359,8 @@ export function EcgApp() {
   const [query, setQuery] = useState('');
   const filtered = useMemo(() => ECG_PATTERNS.filter((item) => item.tab === tab && searchMatch(item, query)), [tab, query]);
   const [selectedId, setSelectedId] = useState('sinus');
+  const [paused, setPaused] = useState(false);
+  const [speed, setSpeed] = useState(1);
   const selected = ECG_PATTERNS.find((item) => item.id === selectedId && item.tab === tab) || filtered[0] || ECG_PATTERNS[0];
 
   const report = `SIMMples ECG\nPadrão selecionado: ${selected.name}\nGrupo: ${selected.type}\nDerivações/território: ${selected.leads}\nIntervalos: ${selected.intervals}\nAchados: ${selected.features.join('; ')}\nCritérios: ${selected.criteria.join('; ')}\nInterpretação: ${selected.explain}\nObservação: ${selected.territory}`;
@@ -374,6 +376,18 @@ export function EcgApp() {
               <span>{item.name}</span><small>{item.type}</small>
             </button>
           ))}
+        </div>
+        <div className="ecg-control-bar">
+          <button type="button" className={paused ? 'ecg-pause-button paused' : 'ecg-pause-button'} onClick={() => setPaused((value) => !value)}>
+            {paused ? <Play size={17} /> : <Pause size={17} />}
+            {paused ? 'Retomar ECG' : 'Pausar ECG'}
+          </button>
+          <div className="ecg-speed-control" aria-label="Velocidade da animação">
+            {[0.75, 1, 1.25].map((value) => (
+              <button key={value} type="button" className={speed === value ? 'active' : ''} onClick={() => setSpeed(value)}>{value}×</button>
+            ))}
+          </div>
+          <span className={paused ? 'ecg-live-dot ecg-live-dot-paused' : 'ecg-live-dot'}>{paused ? 'PAUSADO' : 'AO VIVO'}</span>
         </div>
         <div className="ecg-feature-card ecg-feature-card-rich">
           <div>
@@ -397,8 +411,8 @@ export function EcgApp() {
           <div className="ecg-pearl"><span>Pérola prática</span><strong>{(ECG_PEARLS[selected.id] || {}).action || selected.territory}</strong></div>
         </div>
 
-        <EcgStrip title={`DII — ${selected.name}`} helper="Traçado animado em SVG com grade, calibração e intervalos didáticos." pattern={selected.pattern} rhythm={selected.rhythm} rate={selected.rate} lead="II" />
-        <EcgTwelveLead pattern={selected.pattern} rhythm={selected.rhythm} rate={selected.rate} />
+        <EcgStrip title={`DII — ${selected.name}`} helper="Traçado animado em SVG com grade, calibração e intervalos didáticos." pattern={selected.pattern} rhythm={selected.rhythm} rate={selected.rate} lead="II" paused={paused} speed={speed} />
+        <EcgTwelveLead pattern={selected.pattern} rhythm={selected.rhythm} rate={selected.rate} paused={paused} speed={speed} />
       </Card>
 
       <Card className="compact-card" title="Critérios e achados-chave">

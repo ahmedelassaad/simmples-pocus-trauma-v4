@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const LEADS = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6'];
 
@@ -282,6 +282,36 @@ function droppedBeat(pattern, beatIndex) {
   return false;
 }
 
+function useAnimationTime(paused = false, speed = 1) {
+  const [elapsed, setElapsed] = useState(0);
+  const lastFrameRef = useRef(null);
+
+  useEffect(() => {
+    if (paused) {
+      lastFrameRef.current = null;
+      return undefined;
+    }
+
+    let raf;
+    const loop = (now) => {
+      if (lastFrameRef.current !== null) {
+        const delta = Math.min(0.05, (now - lastFrameRef.current) / 1000);
+        setElapsed((value) => (value + delta * speed) % 10000);
+      }
+      lastFrameRef.current = now;
+      raf = requestAnimationFrame(loop);
+    };
+
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      lastFrameRef.current = null;
+    };
+  }, [paused, speed]);
+
+  return elapsed;
+}
+
 function pathForLead({ lead = 'II', pattern = 'normal', rhythm = 'sinus', rate = 75, phase = 0, width = 700, height = 92, seconds = 4.8 }) {
   const points = [];
   const samples = Math.max(260, Math.round(width * 0.8));
@@ -297,7 +327,8 @@ function pathForLead({ lead = 'II', pattern = 'normal', rhythm = 'sinus', rate =
       rr = rrForRhythm(rhythm, rate, beatIndex);
     }
     const tInBeat = (time - currentBeatStart) / rr;
-    let yVal = beatWave({ t: tInBeat, lead, pattern, rhythm, beatIndex, time, pOnly: droppedBeat(pattern, beatIndex) });
+    const absoluteTime = time + phase;
+    let yVal = beatWave({ t: tInBeat, lead, pattern, rhythm, beatIndex, time: absoluteTime, pOnly: droppedBeat(pattern, beatIndex) });
     if (pattern === 'complete-av') {
       const pCycle = 0.72;
       const pPhase = ((time + 0.05 * lead.length) % pCycle) / pCycle;
@@ -323,20 +354,14 @@ function Calibration({ x = 22, y = 48, h = 24, w = 36 }) {
   return <path className="ecg-calibration" d={`M ${x} ${y} L ${x + 5} ${y} L ${x + 5} ${y - h} L ${x + w} ${y - h} L ${x + w} ${y} L ${x + w + 8} ${y}`} />;
 }
 
-export function EcgStrip({ title, helper, pattern = 'normal', rhythm = 'sinus', rate = 75, lead = 'II', compact = false }) {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    let raf;
-    const loop = () => { setTick((value) => (value + 1) % 100000); raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+export function EcgStrip({ title, helper, pattern = 'normal', rhythm = 'sinus', rate = 75, lead = 'II', compact = false, paused = false, speed = 1 }) {
+  const animationTime = useAnimationTime(paused, speed);
   const height = compact ? 74 : 100;
-  const phase = (tick / 60) * 0.72;
+  const phase = animationTime * 0.72;
   const grid = useMemo(() => gridLines(700, height), [height]);
   const path = useMemo(() => pathForLead({ lead, pattern, rhythm, rate, phase, height, seconds: compact ? 3.6 : 5.2 }), [lead, pattern, rhythm, rate, phase, compact, height]);
   return (
-    <div className="ecg-card">
+    <div className={paused ? 'ecg-card ecg-card-paused' : 'ecg-card'}>
       {(title || helper) && <div className="ecg-head"><strong>{title || lead}</strong>{helper && <small>{helper}</small>}</div>}
       <svg className="ecg-svg" viewBox={`0 0 700 ${height}`} preserveAspectRatio="none" aria-hidden="true">
         {grid.v.map((line) => <line key={`v${line.x}`} className={line.major ? 'ecg-grid major' : 'ecg-grid'} x1={line.x} x2={line.x} y1="0" y2={height} />)}
@@ -346,22 +371,17 @@ export function EcgStrip({ title, helper, pattern = 'normal', rhythm = 'sinus', 
         <text className="ecg-lead-label" x="10" y="18">{lead}</text>
         <text className="ecg-cal-label" x="66" y={height - 20}>25 mm/s • 10 mm/mV didático</text>
       </svg>
+      {paused && <div className="ecg-paused-badge">ECG pausado</div>}
     </div>
   );
 }
 
-export function EcgTwelveLead({ pattern = 'normal', rhythm = 'sinus', rate = 75 }) {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    let raf;
-    const loop = () => { setTick((value) => (value + 1) % 100000); raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  const phase = (tick / 60) * 0.62;
+export function EcgTwelveLead({ pattern = 'normal', rhythm = 'sinus', rate = 75, paused = false, speed = 1 }) {
+  const animationTime = useAnimationTime(paused, speed);
+  const phase = animationTime * 0.62;
   const grid = useMemo(() => gridLines(300, 82), []);
   return (
-    <div className="ecg-12lead">
+    <div className={paused ? 'ecg-12lead ecg-12lead-paused' : 'ecg-12lead'}>
       {LEADS.map((lead) => (
         <svg key={lead} className="ecg-mini-svg" viewBox="0 0 300 82" preserveAspectRatio="none" aria-label={`Derivação ${lead}`}>
           {grid.v.map((line) => <line key={`v${lead}${line.x}`} className={line.major ? 'ecg-grid major' : 'ecg-grid'} x1={line.x} x2={line.x} y1="0" y2="82" />)}

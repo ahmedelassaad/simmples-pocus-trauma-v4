@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Brain, ClipboardList, ScanSearch, Image as ImageIcon } from 'lucide-react';
+import { Brain, ClipboardList, ScanSearch, Image as ImageIcon, ZoomIn, X } from 'lucide-react';
 import { Card, Result } from '../components/Layout.jsx';
 import { NumberField, Segmented, SelectField, ToggleRow } from '../components/Inputs.jsx';
 import { CopyButton } from '../components/CopyButton.jsx';
@@ -50,29 +50,29 @@ const ASPECTS_ZONES = {
 
 const AVC_IMAGES = [
   {
-    title: 'Isquemia precoce — ACM / artéria cerebral média',
+    title: 'Sinal de ACM hiperdensa com infarto territorial',
     src: '/avc/ischemia_early.png',
-    note: 'Exemplo com sinal de ACM hiperdensa e hipodensidade precoce cortical/subcortical.'
+    note: 'A artéria cerebral média aparece hiperdensa e há hipodensidade territorial compatível com isquemia estabelecida.'
   },
   {
-    title: 'Infarto extenso de ACM',
+    title: 'Infarto extenso em território de ACM',
     src: '/avc/mca_infarct.png',
-    note: 'Compare o hemisfério normal com o acometido: perda da diferenciação córtico-subcortical e edema.'
+    note: 'Comparação axial demonstrando hipodensidade extensa, perda da diferenciação córtico-subcortical e edema no território afetado.'
   },
   {
-    title: 'Hemorragia intraparenquimatosa',
-    src: '/avc/ich.png',
-    note: 'Área hiperdensa intra-axial com edema/efeito de massa; pensar em extensão ventricular e desvio de linha média.'
-  },
-  {
-    title: 'Hemorragia subaracnoide',
-    src: '/avc/sah.png',
-    note: 'Sangue nas cisternas basais e fissuras silvianas; procure também hidrocefalia e sangue intraventricular.'
-  },
-  {
-    title: 'Isquemia hipodensa sem marcação',
+    title: 'Isquemia hemisférica com apagamento de sulcos',
     src: '/avc/ischemia_plain.png',
-    note: 'Boa para treinar olho clínico: apagamento de sulcos, hipodensidade e assimetria hemisférica.'
+    note: 'Hipodensidade hemisférica e apagamento dos sulcos, achados compatíveis com infarto de grande território.'
+  },
+  {
+    title: 'Hemorragia intracerebral com extensão intraventricular',
+    src: '/avc/ich_correct.jpg',
+    note: 'Sangue hiperdenso no parênquima e nos ventrículos, com efeito de massa. Imagem específica de hemorragia intra e intraventricular.'
+  },
+  {
+    title: 'Hemorragia subaracnoide nas cisternas basais',
+    src: '/avc/sah.png',
+    note: 'Sangue hiperdenso ocupando cisternas basais e fissuras silvianas, com hidrocefalia e pequena extensão intraventricular.'
   }
 ];
 
@@ -97,6 +97,7 @@ export function AvcApp() {
   const [abcd, setAbcd] = useState({ clinical: '0', duration: '0', diabetes: false });
   const [lvo, setLvo] = useState({ gaze: false, aphasia: false, neglect: false, arm: false, leg: false, cortical: false });
   const [aspects, setAspects] = useState(Object.fromEntries(Object.keys(ASPECTS_ZONES).map((key) => [key, false])));
+  const [expandedImage, setExpandedImage] = useState(null);
 
   const score = useMemo(() => sumValues(nihss), [nihss]);
   const tier = nihssTier(score);
@@ -174,9 +175,10 @@ export function AvcApp() {
           <div className="avc-image-grid">
             {AVC_IMAGES.map((image) => (
               <article className="avc-image-card" key={image.title}>
-                <div className="avc-image-wrap">
+                <button type="button" className="avc-image-wrap avc-image-button" onClick={() => setExpandedImage(image)} aria-label={`Ampliar ${image.title}`}>
                   <img src={image.src} alt={image.title} loading="lazy" />
-                </div>
+                  <span><ZoomIn size={16} /> Ampliar</span>
+                </button>
                 <strong><ImageIcon size={14} />{image.title}</strong>
                 <p>{image.note}</p>
               </article>
@@ -202,6 +204,16 @@ export function AvcApp() {
         <pre className="report-box top-gap">{report}</pre>
         <CopyButton text={report}><ClipboardList size={18}/> Copiar resumo AVC</CopyButton>
       </Card>}
+      {expandedImage && (
+        <div className="image-modal" role="dialog" aria-modal="true" aria-label={expandedImage.title} onClick={() => setExpandedImage(null)}>
+          <div className="image-modal-card" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="image-modal-close" onClick={() => setExpandedImage(null)} aria-label="Fechar imagem"><X size={20} /></button>
+            <img src={expandedImage.src} alt={expandedImage.title} />
+            <strong>{expandedImage.title}</strong>
+            <p>{expandedImage.note}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
