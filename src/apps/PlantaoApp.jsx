@@ -3,7 +3,7 @@ import {
   Activity, Archive, Bot, BrainCircuit, Clipboard, Clock3, Download, FilePlus2,
   FileText, HeartPulse, History, Import, KeyRound, LayoutTemplate, Lock, NotebookPen,
   Plus, Save, Search, ShieldCheck, Sparkles, Stethoscope, Trash2, Upload, UserRound,
-  UsersRound, WandSparkles
+  UsersRound, WandSparkles, ChevronRight, X, AlertTriangle, UserPlus, LockKeyhole, CheckCircle2
 } from 'lucide-react';
 import { Card, Result } from '../components/Layout.jsx';
 import { Segmented } from '../components/Inputs.jsx';
@@ -60,39 +60,200 @@ const QUICK_SNIPPETS = [
 ];
 
 const HYPOTHESIS_RULES = [
-  { terms: ['dor torac', 'opress', 'tropon', 'supra', 'st'], label: 'Síndrome coronariana aguda', level: 'danger', why: 'Dor torácica/isquemia/biomarcadores.' },
-  { terms: ['dispne', 'hipox', 'edema', 'b linha', 'crepit'], label: 'Edema agudo de pulmão / IC', level: 'warning', why: 'Dispneia + congestão/hipoxemia.' },
-  { terms: ['dispne', 'dor pleurit', 'taquic', 'tromb', 'vd dilat'], label: 'Tromboembolismo pulmonar', level: 'danger', why: 'Dispneia, dor pleurítica ou sinais de VD/TVP.' },
-  { terms: ['febre', 'hipotens', 'lactato', 'foco', 'sepse'], label: 'Sepse / choque séptico', level: 'danger', why: 'Infecção suspeita com disfunção orgânica/hipoperfusão.' },
-  { terms: ['deficit', 'afasia', 'hemip', 'desvio do olhar', 'nihss'], label: 'AVC agudo', level: 'danger', why: 'Déficit focal ou sinal cortical.' },
-  { terms: ['cefaleia', 'pior da vida', 'rigidez', 'hsa'], label: 'Hemorragia subaracnoide', level: 'danger', why: 'Cefaleia súbita/meningismo.' },
-  { terms: ['dor abdominal', 'defesa', 'periton', 'lactato'], label: 'Abdome agudo / isquemia mesentérica', level: 'warning', why: 'Dor abdominal com irritação/perfusão alterada.' },
-  { terms: ['hematem', 'melena', 'hematoque', 'sangramento digest'], label: 'Hemorragia digestiva', level: 'warning', why: 'Sangramento gastrointestinal descrito.' },
-  { terms: ['trauma', 'fast positiv', 'pelve', 'choque'], label: 'Choque hemorrágico no trauma', level: 'danger', why: 'Trauma + possível fonte hemorrágica.' },
-  { terms: ['sibil', 'asma', 'broncoesp', 'expir'], label: 'Crise asmática / broncoespasmo', level: 'warning', why: 'Sibilância e obstrução expiratória.' },
-  { terms: ['dpo', 'hipercap', 'pco2', 'sonol'], label: 'Exacerbação de DPOC / insuficiência ventilatória', level: 'warning', why: 'Doença obstrutiva + retenção de CO₂.' },
-  { terms: ['oliguria', 'creatin', 'hipercal', 'renal'], label: 'Lesão renal aguda / distúrbio eletrolítico', level: 'warning', why: 'Oligúria, função renal ou potássio alterados.' },
-  { terms: ['convuls', 'pos ictal', 'todd'], label: 'Crise epiléptica / estado pós-ictal', level: 'warning', why: 'Evento convulsivo ou déficit pós-ictal.' },
-  { terms: ['rebaix', 'coma', 'intox', 'miose'], label: 'Intoxicação / encefalopatia tóxico-metabólica', level: 'warning', why: 'Alteração de consciência e pistas toxicológicas.' },
-  { terms: ['febre', 'rigidez nuca', 'mening'], label: 'Meningite / encefalite', level: 'danger', why: 'Febre associada a sinais meníngeos/neurológicos.' },
-  { terms: ['dor dorsal', 'dor rasgando', 'assimetria de pulso', 'aorta'], label: 'Síndrome aórtica aguda', level: 'danger', why: 'Dor abrupta ou sinais vasculares/aórticos.' },
-  { terms: ['hipotens', 'derrame pericard', 'tampon', 'vc i pletor'], label: 'Tamponamento cardíaco', level: 'danger', why: 'Instabilidade com achados pericárdicos/venosos.' },
-  { terms: ['ausencia de sliding', 'lung point', 'pneumotorax'], label: 'Pneumotórax', level: 'danger', why: 'Achados pulmonares compatíveis.' },
-  { terms: ['hiperglic', 'cetona', 'anion gap', 'cetoacid'], label: 'Cetoacidose diabética', level: 'warning', why: 'Hiperglicemia com cetose/acidose e ânion gap.' },
-  { terms: ['palpit', 'taquicardia', 'qrs largo', 'arritm'], label: 'Taquiarritmia', level: 'warning', why: 'Sintomas e achados eletrocardiográficos de arritmia.' }
+  { label: 'Síndrome coronariana aguda', level: 'danger', why: 'O texto contém achados compatíveis com isquemia miocárdica aguda.', signals: [
+    { label: 'Dor ou opressão torácica', terms: ['dor torac', 'opressao torac', 'opressiva'] },
+    { label: 'Troponina alterada', terms: ['troponina elev', 'troponina positiv', 'delta de tropon'] },
+    { label: 'Alteração isquêmica no ECG', terms: ['supra de st', 'infra de st', 'isquemia no ecg', 'wellens', 'de winter'] }
+  ]},
+  { label: 'Edema agudo de pulmão / insuficiência cardíaca', level: 'warning', minScore: 2, why: 'Há sinais de congestão pulmonar ou insuficiência cardíaca descompensada.', signals: [
+    { label: 'Dispneia', terms: ['dispneia', 'falta de ar'] },
+    { label: 'Congestão pulmonar', terms: ['edema pulmonar', 'linhas b', 'b-lines', 'crepitacoes', 'estertores'] },
+    { label: 'Hipoxemia', terms: ['hipoxemia', 'saturacao baixa', 'dessaturacao'] }
+  ]},
+  { label: 'Tromboembolismo pulmonar', level: 'danger', minScore: 2, why: 'Os achados descritos podem ocorrer em tromboembolismo pulmonar.', signals: [
+    { label: 'Dispneia ou dor pleurítica', terms: ['dispneia', 'dor pleurit'] },
+    { label: 'Taquicardia', terms: ['taquicardia'] },
+    { label: 'Sinais de TVP', terms: ['trombose venosa', 'tvp', 'membro inferior inchado'] },
+    { label: 'Sobrecarga de ventrículo direito', terms: ['vd dilat', 'strain de vd', 'sobrecarga de vd'] }
+  ]},
+  { label: 'Sepse / choque séptico', level: 'danger', minScore: 2, why: 'Há pistas de infecção associada a disfunção orgânica ou hipoperfusão.', signals: [
+    { label: 'Infecção ou febre', terms: ['febre', 'foco infecc', 'sepse', 'calafrios'] },
+    { label: 'Hipotensão', terms: ['hipotensao', 'pam baixa'] },
+    { label: 'Lactato elevado', terms: ['lactato elev', 'hiperlactatemia'] },
+    { label: 'Disfunção orgânica', terms: ['oliguria', 'rebaixamento', 'disfuncao organica'] }
+  ]},
+  { label: 'AVC agudo', level: 'danger', why: 'O texto descreve déficit neurológico focal ou sinal cortical de início agudo.', signals: [
+    { label: 'Déficit focal', terms: ['deficit focal', 'hemiparesia', 'hemiplegia'] },
+    { label: 'Afasia', terms: ['afasia'] },
+    { label: 'Desvio do olhar', terms: ['desvio do olhar'] },
+    { label: 'NIHSS pontuado', terms: ['nihss'] }
+  ]},
+  { label: 'Hemorragia subaracnoide', level: 'danger', why: 'A descrição contém elementos típicos de cefaleia súbita potencialmente secundária a HSA.', signals: [
+    { label: 'Cefaleia súbita intensa', terms: ['pior dor da vida', 'cefaleia subita', 'cefaleia em trovoada'] },
+    { label: 'Sinais meníngeos', terms: ['rigidez de nuca', 'meningismo'] },
+    { label: 'HSA mencionada', terms: ['hemorragia subaracnoide', 'hsa'] }
+  ]},
+  { label: 'Abdome agudo / isquemia mesentérica', level: 'warning', minScore: 2, why: 'Dor abdominal associada a sinais de irritação peritoneal ou hipoperfusão exige investigação urgente.', signals: [
+    { label: 'Dor abdominal', terms: ['dor abdominal'] },
+    { label: 'Irritação peritoneal', terms: ['defesa abdominal', 'peritonismo', 'irritacao peritoneal'] },
+    { label: 'Hipoperfusão', terms: ['lactato elev', 'choque', 'hipoperfusao'] }
+  ]},
+  { label: 'Hemorragia digestiva', level: 'warning', why: 'O texto descreve exteriorização de sangramento gastrointestinal.', signals: [
+    { label: 'Hematêmese', terms: ['hematemese'] }, { label: 'Melena', terms: ['melena'] }, { label: 'Hematoquezia', terms: ['hematoquezia'] }, { label: 'Sangramento digestivo', terms: ['sangramento digestivo', 'hemorragia digestiva'] }
+  ]},
+  { label: 'Choque hemorrágico no trauma', level: 'danger', minScore: 2, why: 'Trauma associado a possível fonte hemorrágica ou sinais de choque.', signals: [
+    { label: 'Trauma relevante', terms: ['trauma', 'acidente', 'queda de altura'] }, { label: 'FAST positivo', terms: ['fast positivo', 'liquido livre'] }, { label: 'Fonte pélvica', terms: ['fratura pelvica', 'instabilidade pelvica'] }, { label: 'Choque', terms: ['choque', 'hipotensao', 'hipoperfusao'] }
+  ]},
+  { label: 'Crise asmática / broncoespasmo', level: 'warning', why: 'Há sinais de obstrução expiratória compatíveis com broncoespasmo.', signals: [
+    { label: 'Sibilância', terms: ['sibilos', 'sibilancia'] }, { label: 'Broncoespasmo', terms: ['broncoespasmo'] }, { label: 'Asma', terms: ['asma'] }, { label: 'Expiração prolongada', terms: ['expiracao prolongada'] }
+  ]},
+  { label: 'Exacerbação de DPOC / insuficiência ventilatória', level: 'warning', minScore: 2, why: 'Doença obstrutiva associada a retenção de CO₂ ou alteração do nível de consciência.', signals: [
+    { label: 'DPOC', terms: ['dpoc'] }, { label: 'Hipercapnia', terms: ['hipercapnia', 'pco2 elev'] }, { label: 'Sonolência', terms: ['sonolencia', 'rebaixamento'] }
+  ]},
+  { label: 'Lesão renal aguda / distúrbio eletrolítico', level: 'warning', why: 'O texto contém sinais de disfunção renal ou alteração eletrolítica relevante.', signals: [
+    { label: 'Oligúria', terms: ['oliguria', 'anuria'] }, { label: 'Creatinina elevada', terms: ['creatinina elev', 'funcao renal alterada'] }, { label: 'Hipercalemia', terms: ['hipercalemia', 'potassio elev'] }
+  ]},
+  { label: 'Crise epiléptica / estado pós-ictal', level: 'warning', why: 'Há descrição de evento convulsivo ou alteração neurológica pós-ictal.', signals: [
+    { label: 'Convulsão', terms: ['convulsao', 'crise tonico-clonica'] }, { label: 'Estado pós-ictal', terms: ['pos-ictal', 'pos ictal'] }, { label: 'Paralisia de Todd', terms: ['paralisia de todd', 'todd'] }
+  ]},
+  { label: 'Intoxicação / encefalopatia tóxico-metabólica', level: 'warning', minScore: 2, why: 'Alteração de consciência associada a pistas toxicológicas ou metabólicas.', signals: [
+    { label: 'Rebaixamento do nível de consciência', terms: ['rebaixamento', 'coma'] }, { label: 'Exposição tóxica', terms: ['intoxicacao', 'ingestao de', 'exposicao a'] }, { label: 'Miose', terms: ['miose'] }
+  ]},
+  { label: 'Meningite / encefalite', level: 'danger', minScore: 2, why: 'Febre associada a sinais meníngeos ou alteração neurológica sugere infecção do sistema nervoso central.', signals: [
+    { label: 'Febre', terms: ['febre'] }, { label: 'Rigidez de nuca', terms: ['rigidez de nuca', 'meningismo'] }, { label: 'Alteração neurológica', terms: ['confusao', 'rebaixamento', 'convulsao'] }
+  ]},
+  { label: 'Síndrome aórtica aguda', level: 'danger', why: 'Dor abrupta associada a sinais vasculares ou suspeita de comprometimento aórtico.', signals: [
+    { label: 'Dor abrupta dorsal ou torácica', terms: ['dor dorsal subita', 'dor rasgando', 'dor toracica subita'] }, { label: 'Assimetria de pulsos', terms: ['assimetria de pulso', 'diferenca de pressao'] }, { label: 'Aorta alterada', terms: ['disseccao de aorta', 'sindrome aortica', 'flap aortico'] }
+  ]},
+  { label: 'Tamponamento cardíaco', level: 'danger', minScore: 2, why: 'Instabilidade hemodinâmica associada a achados pericárdicos ou congestão venosa.', signals: [
+    { label: 'Hipotensão', terms: ['hipotensao', 'choque'] }, { label: 'Derrame pericárdico', terms: ['derrame pericardico'] }, { label: 'Sinais de tamponamento', terms: ['tamponamento', 'colapso de vd', 'colapso de ad'] }, { label: 'VCI pletórica', terms: ['vci pletorica', 'veia cava pletorica'] }
+  ]},
+  { label: 'Pneumotórax', level: 'danger', why: 'Há achados clínicos ou ultrassonográficos compatíveis com pneumotórax.', signals: [
+    { label: 'Ausência de deslizamento pleural', terms: ['ausencia de sliding', 'sem lung sliding', 'ausencia de deslizamento'] }, { label: 'Lung point', terms: ['lung point'] }, { label: 'Pneumotórax mencionado', terms: ['pneumotorax'] }
+  ]},
+  { label: 'Cetoacidose diabética', level: 'warning', minScore: 2, why: 'Hiperglicemia associada a cetose e acidose com ânion gap elevado.', signals: [
+    { label: 'Hiperglicemia', terms: ['hiperglicemia', 'glicemia elev'] }, { label: 'Cetose', terms: ['cetonemia', 'cetonuria', 'cetose'] }, { label: 'Acidose com ânion gap', terms: ['anion gap elev', 'acidose metabolica'] }, { label: 'Cetoacidose mencionada', terms: ['cetoacidose'] }
+  ]},
+  { label: 'Taquiarritmia', level: 'warning', why: 'O texto contém sintomas ou achados eletrocardiográficos compatíveis com taquiarritmia.', signals: [
+    { label: 'Palpitações', terms: ['palpitacoes'] }, { label: 'Taquicardia', terms: ['taquicardia'] }, { label: 'QRS largo', terms: ['qrs largo'] }, { label: 'Arritmia documentada', terms: ['fibrilacao atrial', 'flutter', 'taquicardia ventricular', 'arritmia'] }
+  ]}
 ];
 
 function uid(prefix = 'id') {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function normalizeVaultPayload(payload = {}) {
+  const patients = Array.isArray(payload.patients)
+    ? payload.patients.map((patient) => ({
+        ...EMPTY_PATIENT,
+        ...patient,
+        id: patient?.id || uid('patient'),
+        name: String(patient?.name || ''),
+        bed: String(patient?.bed || ''),
+        age: String(patient?.age || ''),
+        priority: ['estavel', 'atencao', 'critico'].includes(patient?.priority) ? patient.priority : 'estavel',
+        events: Array.isArray(patient?.events)
+          ? patient.events
+              .map((event) => ({
+                id: event?.id || uid('event'),
+                kind: event?.kind === 'intercorrencia' ? 'intercorrencia' : 'evolucao',
+                text: cleanClinicalText(event?.text),
+                createdAt: event?.createdAt || new Date().toISOString()
+              }))
+              .filter((event) => event.text)
+          : [],
+        tags: Array.isArray(patient?.tags) ? patient.tags.filter(Boolean).map(String) : []
+      }))
+    : [];
+
+  const templates = Array.isArray(payload.templates)
+    ? payload.templates
+        .map((template) => ({
+          id: template?.id || uid('template'),
+          name: sanitizeClinicalPhrase(template?.name),
+          type: ['evolucao', 'exame', 'pocus', 'intercorrencia'].includes(template?.type) ? template.type : 'evolucao',
+          content: cleanClinicalText(template?.content)
+        }))
+        .filter((template) => template.name && template.content)
+    : [];
+
+  return {
+    ...EMPTY_DATA,
+    ...payload,
+    patients,
+    templates: templates.length ? templates : DEFAULT_TEMPLATES,
+    preferences: { ...EMPTY_DATA.preferences, ...(payload.preferences || {}) }
+  };
+}
+
 function normalize(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
+const INVALID_CLINICAL_FRAGMENT = /^(pista|achado|sinal|evid[eê]ncia|hip[oó]tese|suspeita|compatibilidade)\s*[.:;,–—-]*$/i;
+
+function cleanClinicalText(value) {
+  return String(value || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/[\u00A0\t]+/g, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/([.!?])(?:\s*\1)+/g, '$1')
+    .replace(/\b(?:Pista|Achado|Sinal)\s*[.:;,–—-]+\s*(?=$|\n)/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line, index, lines) => line || (index > 0 && lines[index - 1]))
+    .join('\n')
+    .trim();
+}
+
+function sanitizeClinicalPhrase(value, fallback = '') {
+  const text = cleanClinicalText(value)
+    .replace(/^[•·▪◦\-–—]+\s*/, '')
+    .replace(/\s*[.:;,–—-]+$/, (ending) => ending.includes('.') || ending.includes('?') || ending.includes('!') ? ending : '');
+  if (!text || INVALID_CLINICAL_FRAGMENT.test(text) || text.length < 3) return fallback;
+  return text;
+}
+
+function completeSentence(value, fallback = '') {
+  const text = sanitizeClinicalPhrase(value, fallback);
+  if (!text) return '';
+  const capitalized = text.charAt(0).toUpperCase() + text.slice(1);
+  return /[.!?]$/.test(capitalized) ? capitalized : `${capitalized}.`;
+}
+
+function joinClinicalList(items) {
+  const cleanItems = [...new Set(items.map((item) => sanitizeClinicalPhrase(item)).filter(Boolean))];
+  if (cleanItems.length <= 1) return cleanItems[0] || '';
+  if (cleanItems.length === 2) return `${cleanItems[0]} e ${cleanItems[1]}`;
+  return `${cleanItems.slice(0, -1).join(', ')} e ${cleanItems.at(-1)}`;
+}
+
 function formatDate(value) {
   if (!value) return '--';
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '--';
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date);
+}
+
+function buildEvolutionText(patient, includeIdentification = false) {
+  if (!patient) return '';
+  const sections = [
+    ['História clínica', patient.story],
+    ['Exame físico', patient.exam],
+    ['POCUS / procedimentos', patient.pocus],
+    ['Impressão diagnóstica', patient.assessment],
+    ['Conduta / plano', patient.plan]
+  ].filter(([, content]) => cleanClinicalText(content));
+
+  const body = sections.map(([title, content]) => `${title}:\n${cleanClinicalText(content)}`).join('\n\n');
+  if (!includeIdentification) return body;
+  const identification = [
+    patient.name ? `Paciente: ${cleanClinicalText(patient.name)}` : '',
+    patient.bed ? `Leito: ${cleanClinicalText(patient.bed)}` : ''
+  ].filter(Boolean).join(' | ');
+  return [identification, body].filter(Boolean).join('\n\n');
 }
 
 function deriveHypotheses(patient) {
@@ -101,10 +262,25 @@ function deriveHypotheses(patient) {
     patient.assessment, patient.notes, patient.events?.map((item) => item.text).join(' ')
   ].join(' '));
   if (!source.trim()) return [];
+
   return HYPOTHESIS_RULES.map((rule) => {
-    const hits = rule.terms.filter((term) => source.includes(normalize(term)));
-    return { ...rule, hits, score: hits.length };
-  }).filter((item) => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 6);
+    const evidence = rule.signals
+      .filter((signal) => signal.terms.some((term) => source.includes(normalize(term))))
+      .map((signal) => sanitizeClinicalPhrase(signal.label))
+      .filter(Boolean);
+    const uniqueEvidence = [...new Set(evidence)];
+    const score = uniqueEvidence.length;
+    const confidence = score >= 3 ? 'Compatibilidade alta' : score === 2 ? 'Compatibilidade moderada' : 'Compatibilidade inicial';
+    const label = sanitizeClinicalPhrase(rule.label, 'Hipótese clínica');
+    const why = completeSentence(rule.why, `O conjunto descrito pode ser compatível com ${label.toLowerCase()}`);
+    const evidenceSummary = uniqueEvidence.length
+      ? completeSentence(`Elementos reconhecidos: ${joinClinicalList(uniqueEvidence)}`)
+      : '';
+    return { ...rule, label, why, evidence: uniqueEvidence, evidenceSummary, score, confidence };
+  })
+    .filter((item) => item.score >= (item.minScore || 1) && item.label && item.why)
+    .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, 'pt-BR'))
+    .slice(0, 6);
 }
 
 function frequentSnippets(data) {
@@ -125,7 +301,7 @@ function TextArea({ label, value, onChange, placeholder, rows = 6 }) {
   return (
     <label className="field text-field">
       <span>{label}</span>
-      <textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} rows={rows} />
+      <textarea value={value || ''} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} rows={rows} />
     </label>
   );
 }
@@ -183,16 +359,49 @@ function VaultGate({ onUnlock }) {
         </label>
       )}
       {error && <div className="plantao-gate-error">{error}</div>}
-      <button type="button" className="primary-button" onClick={submit} disabled={loading}>
-        <Lock size={18} /> {loading ? 'Abrindo...' : mode === 'create' ? 'Criar cofre' : 'Desbloquear'}
+      <button type="button" className="plantao-action plantao-action-primary plantao-action-wide plantao-gate-main-action" onClick={submit} disabled={loading}>
+        <span className="plantao-button-icon">{mode === 'create' ? <ShieldCheck size={18}/> : <LockKeyhole size={18}/>}</span>
+        <span className="plantao-action-copy">
+          <strong>{loading ? 'Abrindo o cofre...' : mode === 'create' ? 'Criar cofre clínico' : 'Desbloquear Plantão'}</strong>
+          <small>{mode === 'create' ? 'Criptografia local e senha sob seu controle' : 'Acessar pacientes, evoluções e modelos'}</small>
+        </span>
+        <ChevronRight size={18}/>
       </button>
       <div className="plantao-gate-actions">
-        <button type="button" onClick={() => { setMode(mode === 'create' ? 'unlock' : 'create'); setError(''); }}>
-          {mode === 'create' ? 'Já tenho um cofre' : 'Criar novo cofre'}
+        <button type="button" className="plantao-gate-secondary" onClick={() => { setMode(mode === 'create' ? 'unlock' : 'create'); setError(''); }}>
+          {mode === 'create' ? <LockKeyhole size={14}/> : <Plus size={14}/>}
+          <span>{mode === 'create' ? 'Já tenho um cofre' : 'Criar novo cofre'}</span>
         </button>
-        <button type="button" onClick={() => fileRef.current?.click()}><Upload size={14}/> Importar backup</button>
+        <button type="button" className="plantao-gate-secondary" onClick={() => fileRef.current?.click()}><Upload size={14}/><span>Importar backup</span></button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e)=>importBackup(e.target.files?.[0])} />
       </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({ config, onClose }) {
+  if (!config) return null;
+  const confirm = () => {
+    config.onConfirm?.();
+    onClose();
+  };
+  return (
+    <div className="plantao-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="plantao-dialog" role="alertdialog" aria-modal="true" aria-labelledby="plantao-dialog-title" aria-describedby="plantao-dialog-message">
+        <button type="button" className="plantao-dialog-close" onClick={onClose} aria-label="Fechar confirmação"><X size={18}/></button>
+        <div className="plantao-dialog-icon"><AlertTriangle size={24}/></div>
+        <span className="kicker">Confirmação necessária</span>
+        <h3 id="plantao-dialog-title">{config.title}</h3>
+        <p id="plantao-dialog-message">{config.message}</p>
+        <div className="plantao-dialog-actions">
+          <button type="button" className="plantao-action plantao-action-muted plantao-dialog-action" onClick={onClose}>
+            <span className="plantao-button-icon"><X size={16}/></span><span>Cancelar</span>
+          </button>
+          <button type="button" className="plantao-action plantao-action-danger plantao-dialog-action" onClick={confirm}>
+            <span className="plantao-button-icon"><CheckCircle2 size={16}/></span><span>{config.confirmLabel || 'Confirmar'}</span>
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
@@ -211,6 +420,7 @@ export function PlantaoApp() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnswer, setAiAnswer] = useState('');
   const [templateDraft, setTemplateDraft] = useState({ name: '', type: 'evolucao', content: '' });
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const inactivityRef = useRef(null);
   const importRef = useRef(null);
 
@@ -262,7 +472,7 @@ export function PlantaoApp() {
 
   const unlock = (password, payload) => {
     setPassphrase(password);
-    setData({ ...EMPTY_DATA, ...payload, templates: payload.templates?.length ? payload.templates : DEFAULT_TEMPLATES });
+    setData(normalizeVaultPayload(payload));
     setUnlocked(true);
   };
 
@@ -297,10 +507,11 @@ ${snippet.text}` : snippet.text });
 
   const addEvent = (kind = 'evolucao') => {
     if (!selected) return;
-    const text = kind === 'evolucao'
-      ? `Evolução:\n${selected.story}\n\nExame físico:\n${selected.exam}\n\nPOCUS:\n${selected.pocus}\n\nImpressão diagnóstica:\n${selected.assessment}\n\nConduta:\n${selected.plan}`
-      : selected.notes;
-    if (!text.trim()) return;
+    const text = kind === 'evolucao' ? buildEvolutionText(selected) : cleanClinicalText(selected.notes);
+    if (!text) {
+      window.dispatchEvent(new CustomEvent('simm-toast', { detail: kind === 'evolucao' ? 'Preencha ao menos uma seção da evolução.' : 'Descreva a intercorrência antes de registrar.' }));
+      return;
+    }
     const event = { id: uid('event'), kind, text, createdAt: new Date().toISOString() };
     updatePatient({ events: [event, ...(selected.events || [])] });
     window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Registro adicionado à linha do tempo.' }));
@@ -316,16 +527,23 @@ ${snippet.text}` : snippet.text });
 
   const saveCurrentAsTemplate = () => {
     if (!selected) return;
-    const content = [selected.story, selected.exam, selected.pocus, selected.assessment, selected.plan].filter(Boolean).join('\n\n');
-    if (!content.trim()) return;
+    const content = buildEvolutionText(selected);
+    if (!content) {
+      window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Preencha a evolução antes de salvá-la como modelo.' }));
+      return;
+    }
     const template = { id: uid('template'), name: `Modelo de ${selected.name || selected.bed || 'evolução'}`, type: 'evolucao', content };
     setData((old) => ({ ...old, templates: [template, ...old.templates] }));
     window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Evolução salva como modelo personalizável.' }));
   };
 
   const createTemplate = () => {
-    if (!templateDraft.name.trim() || !templateDraft.content.trim()) return;
-    setData((old) => ({ ...old, templates: [{ ...templateDraft, id: uid('template') }, ...old.templates] }));
+    if (!templateDraft.name.trim() || !templateDraft.content.trim()) {
+      window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Informe o nome e o conteúdo do modelo.' }));
+      return;
+    }
+    const nextTemplate = { id: uid('template'), name: sanitizeClinicalPhrase(templateDraft.name), type: templateDraft.type, content: cleanClinicalText(templateDraft.content) };
+    setData((old) => ({ ...old, templates: [nextTemplate, ...old.templates] }));
     setTemplateDraft({ name: '', type: 'evolucao', content: '' });
   };
 
@@ -359,7 +577,7 @@ ${snippet.text}` : snippet.text });
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Falha na análise.');
-      setAiAnswer(result.answer || 'Sem resposta.');
+      setAiAnswer(cleanClinicalText(result.answer || 'Sem resposta.'));
     } catch (err) {
       setAiAnswer(err.message || 'Falha ao chamar a IA.');
     } finally {
@@ -406,7 +624,10 @@ ${snippet.text}` : snippet.text });
       <div className="plantao-statusbar">
         <div><ShieldCheck size={16}/><span>Cofre AES-GCM</span></div>
         <div className={saving ? 'plantao-save saving' : 'plantao-save'}><Save size={14}/>{saving ? 'Salvando...' : lastSaved ? `Salvo ${formatDate(lastSaved)}` : 'Pronto'}</div>
-        <button type="button" onClick={lock}><Lock size={15}/> Bloquear</button>
+        <button type="button" className="plantao-lock-button" onClick={lock} aria-label="Bloquear o cofre clínico">
+          <span className="plantao-button-icon"><LockKeyhole size={15}/></span>
+          <span className="plantao-lock-copy"><strong>Bloquear</strong><small>Encerrar sessão</small></span>
+        </button>
       </div>
 
       <Segmented value={tab} onChange={setTab} options={tabs} />
@@ -432,7 +653,11 @@ ${snippet.text}` : snippet.text });
                 ['estavel','Estável'],['atencao','Atenção'],['critico','Crítico']
               ].map(([value,label])=><button key={value} type="button" className={patientDraft.priority===value?`priority-chip priority-${value} active`:`priority-chip priority-${value}`} onClick={()=>setPatientDraft({...patientDraft,priority:value})}>{label}</button>)}
             </div>
-            <button type="button" className="primary-button top-gap" onClick={createPatient}><Plus size={18}/> Criar paciente</button>
+            <button type="button" className="plantao-action plantao-action-primary plantao-action-wide top-gap" onClick={createPatient}>
+              <span className="plantao-button-icon"><UserPlus size={18}/></span>
+              <span className="plantao-action-copy"><strong>Adicionar paciente</strong><small>Abrir um registro clínico criptografado</small></span>
+              <ChevronRight size={18}/>
+            </button>
           </Card>
 
           <Card title="Lista do plantão" kicker="Busca instantânea">
@@ -455,9 +680,18 @@ ${snippet.text}` : snippet.text });
         selected ? <>
           <Card className="patient-context-card" kicker={`Leito ${selected.bed || '--'}`} title={selected.name || 'Paciente sem nome'}>
             <div className="patient-context-actions">
-              <span className={`priority-badge priority-${selected.priority}`}>{selected.priority}</span>
-              <button type="button" onClick={saveCurrentAsTemplate}><LayoutTemplate size={15}/> Salvar como modelo</button>
-              <button type="button" className="danger-ghost" onClick={()=>{ if(confirm('Excluir este paciente do cofre?')) { setData((old)=>({...old,patients:old.patients.filter((p)=>p.id!==selected.id)})); setSelectedId(''); setTab('pacientes'); } }}><Trash2 size={15}/></button>
+              <span className={`priority-badge priority-${selected.priority}`}>{selected.priority === 'critico' ? 'Crítico' : selected.priority === 'atencao' ? 'Atenção' : 'Estável'}</span>
+              <button type="button" className="plantao-action plantao-action-compact plantao-action-purple plantao-save-template" onClick={saveCurrentAsTemplate}>
+                <span className="plantao-button-icon"><LayoutTemplate size={15}/></span>
+                <span className="plantao-action-copy"><strong>Salvar como modelo</strong><small>Reutilizar esta estrutura</small></span>
+                <ChevronRight size={15}/>
+              </button>
+              <button type="button" className="plantao-icon-button plantao-icon-danger" aria-label="Excluir paciente" title="Excluir paciente" onClick={()=>setConfirmDialog({
+                title: 'Excluir este paciente?',
+                message: 'O paciente e toda a linha do tempo serão removidos permanentemente deste cofre.',
+                confirmLabel: 'Excluir paciente',
+                onConfirm: () => { setData((old)=>({...old,patients:old.patients.filter((p)=>p.id!==selected.id)})); setSelectedId(''); setTab('pacientes'); }
+              })}><Trash2 size={16}/></button>
             </div>
           </Card>
           <Card title="História e evolução" kicker="Texto aberto e editável">
@@ -472,13 +706,16 @@ ${snippet.text}` : snippet.text });
             <TextArea label="Impressão diagnóstica" value={selected.assessment} onChange={(value)=>updatePatient({assessment:value})} placeholder="Hipótese principal e diferenciais..." rows={5}/>
             <TextArea label="Conduta / plano" value={selected.plan} onChange={(value)=>updatePatient({plan:value})} placeholder="Condutas, pendências, metas e reavaliação..." rows={6}/>
             <div className="button-row top-gap">
-              <button type="button" className="secondary-button" onClick={()=>addEvent('evolucao')}><History size={17}/> Salvar na linha do tempo</button>
-              <CopyButton text={`Paciente: ${selected.name}\nLeito: ${selected.bed}\n\nHistória:\n${selected.story}\n\nExame físico:\n${selected.exam}\n\nPOCUS:\n${selected.pocus}\n\nImpressão diagnóstica:\n${selected.assessment}\n\nConduta:\n${selected.plan}`}><Clipboard size={17}/> Copiar evolução</CopyButton>
+              <button type="button" className="plantao-action plantao-action-secondary" onClick={()=>addEvent('evolucao')}>
+                <span className="plantao-button-icon"><History size={17}/></span>
+                <span className="plantao-action-copy"><strong>Salvar evolução</strong><small>Adicionar à linha do tempo</small></span>
+              </button>
+              <CopyButton text={buildEvolutionText(selected, true)}><Clipboard size={17}/> Copiar evolução</CopyButton>
             </div>
           </Card>
           <Card title="Intercorrência rápida" kicker="Registro cronológico">
             <TextArea label="Descrição" value={selected.notes} onChange={(value)=>updatePatient({notes:value})} placeholder="Evento, horário, sinais vitais, avaliação, conduta e resposta..." rows={5}/>
-            <button type="button" className="primary-button" onClick={()=>addEvent('intercorrencia')}><NotebookPen size={17}/> Registrar intercorrência</button>
+            <button type="button" className="plantao-action plantao-action-primary plantao-action-wide" onClick={()=>addEvent('intercorrencia')}><span className="plantao-button-icon"><NotebookPen size={17}/></span><span className="plantao-action-copy"><strong>Registrar intercorrência</strong><small>Adicionar evento à linha do tempo</small></span><ChevronRight size={18}/></button>
           </Card>
         </> : <div className="empty-state tall"><UserRound size={32}/><strong>Selecione um paciente</strong><span>Acesse a aba Pacientes para abrir ou criar um registro.</span></div>
       )}
@@ -490,14 +727,18 @@ ${snippet.text}` : snippet.text });
             <div className="hypothesis-grid">
               {hypotheses.length ? hypotheses.map((item)=>(
                 <article key={item.label} className={`hypothesis-card hypothesis-${item.level}`}>
-                  <span>{item.score} pista{item.score>1?'s':''}</span><strong>{item.label}</strong><p>{item.why}</p><small>{item.hits.join(' • ')}</small>
+                  <div className="hypothesis-card-head"><span className="hypothesis-confidence">{item.confidence}</span><span className="hypothesis-count">{item.score} {item.score===1?'achado':'achados'}</span></div>
+                  <strong>{item.label}</strong>
+                  <p>{item.why}</p>
+                  {item.evidenceSummary && <small className="hypothesis-summary">{item.evidenceSummary}</small>}
+                  <div className="hypothesis-evidence" aria-label="Elementos clínicos reconhecidos">{item.evidence.map((evidence)=><span key={evidence}>{evidence}</span>)}</div>
                 </article>
-              )) : <div className="empty-state"><Sparkles size={26}/><strong>Continue escrevendo a história</strong><span>As hipóteses aparecerão dinamicamente.</span></div>}
+              )) : <div className="empty-state"><Sparkles size={26}/><strong>Continue preenchendo o caso</strong><span>As sugestões aparecerão quando houver achados clínicos suficientes.</span></div>}
             </div>
           </Card>
           <Card title="Revisão opcional pela SIMM AI" kicker="Privacidade primeiro">
             <label className="privacy-consent"><input type="checkbox" checked={aiAllowed} onChange={(e)=>setAiAllowed(e.target.checked)}/><span>Autorizo enviar o texto clínico deste paciente ao provedor de IA configurado no projeto. Não inclua identificadores desnecessários.</span></label>
-            <button type="button" className="primary-button" disabled={!aiAllowed || aiLoading} onClick={askAi}><Bot size={18}/>{aiLoading?'Analisando...':'Revisar caso com SIMM AI'}</button>
+            <button type="button" className="plantao-action plantao-action-purple plantao-action-wide" disabled={!aiAllowed || aiLoading} onClick={askAi}><span className="plantao-button-icon"><Bot size={18}/></span><span className="plantao-action-copy"><strong>{aiLoading?'Analisando o caso...':'Revisar com SIMM AI'}</strong><small>{aiAllowed?'Sugestões clínicas sem inventar dados':'Autorize o envio do texto para habilitar'}</small></span><ChevronRight size={18}/></button>
             {aiAnswer && <div className="ai-clinical-answer"><strong><WandSparkles size={16}/> Sugestões da IA</strong><p>{aiAnswer}</p></div>}
           </Card>
         </> : <div className="empty-state tall"><BrainCircuit size={32}/><strong>Selecione um paciente</strong></div>
@@ -507,14 +748,14 @@ ${snippet.text}` : snippet.text });
         <>
           <Card title="Modelos personalizáveis" kicker="Um toque para inserir">
             <div className="template-grid">
-              {data.templates.map((template)=><article className="template-card" key={template.id}><span>{template.type}</span><strong>{template.name}</strong><p>{template.content.slice(0,140)}{template.content.length>140?'…':''}</p><div><button type="button" onClick={()=>applyTemplate(template)} disabled={!selected}><FilePlus2 size={14}/> Inserir</button><button type="button" onClick={()=>setData((old)=>({...old,templates:old.templates.filter((item)=>item.id!==template.id)}))}><Trash2 size={14}/></button></div></article>)}
+              {data.templates.map((template)=><article className="template-card" key={template.id}><span>{template.type}</span><strong>{template.name}</strong><p>{template.content.slice(0,140)}{template.content.length>140?'…':''}</p><div className="template-card-actions"><button type="button" className="plantao-action plantao-action-mini plantao-action-purple" onClick={()=>applyTemplate(template)} disabled={!selected}><span className="plantao-button-icon"><FilePlus2 size={14}/></span><span>Inserir modelo</span></button><button type="button" className="plantao-icon-button plantao-icon-danger" aria-label={`Excluir modelo ${template.name}`} title="Excluir modelo" onClick={()=>setConfirmDialog({title:'Excluir este modelo?',message:`O modelo “${template.name}” será removido do seu cofre.`,confirmLabel:'Excluir modelo',onConfirm:()=>setData((old)=>({...old,templates:old.templates.filter((item)=>item.id!==template.id)}))})}><Trash2 size={14}/></button></div></article>)}
             </div>
           </Card>
           {learnedSnippets.length > 0 && <Card title="Sugestões aprendidas" kicker="Trechos frequentes das suas evoluções"><div className="snippet-list">{learnedSnippets.map((item)=><button type="button" key={item.text} onClick={()=>selected&&updatePatient({notes:[selected.notes,item.text].filter(Boolean).join('\n')})}><Sparkles size={14}/><span>{item.text}</span><em>{item.count}×</em></button>)}</div></Card>}
           <Card title="Criar novo modelo" kicker="Totalmente editável">
             <div className="grid-2"><label className="field"><span>Nome</span><div className="field-box"><input value={templateDraft.name} onChange={(e)=>setTemplateDraft({...templateDraft,name:e.target.value})} placeholder="Ex.: evolução cardiogênico" /></div></label><label className="field"><span>Tipo</span><div className="field-box"><select value={templateDraft.type} onChange={(e)=>setTemplateDraft({...templateDraft,type:e.target.value})}><option value="evolucao">Evolução</option><option value="exame">Exame físico</option><option value="pocus">POCUS</option><option value="intercorrencia">Intercorrência</option></select></div></label></div>
             <TextArea label="Conteúdo" value={templateDraft.content} onChange={(value)=>setTemplateDraft({...templateDraft,content:value})} placeholder="Escreva o modelo como preferir..." rows={8}/>
-            <button type="button" className="primary-button" onClick={createTemplate}><Plus size={17}/> Salvar modelo</button>
+            <button type="button" className="plantao-action plantao-action-primary plantao-action-wide" onClick={createTemplate}><span className="plantao-button-icon"><Plus size={17}/></span><span className="plantao-action-copy"><strong>Salvar novo modelo</strong><small>Disponibilizar na biblioteca personalizada</small></span><ChevronRight size={18}/></button>
           </Card>
         </>
       )}
@@ -523,7 +764,7 @@ ${snippet.text}` : snippet.text });
         selected ? <Card title="Linha do tempo" kicker={`${selected.events?.length || 0} registros`}>
           <div className="timeline-list">
             {(selected.events || []).length === 0 && <div className="empty-state"><History size={26}/><strong>Sem registros ainda</strong></div>}
-            {(selected.events || []).map((event)=><article className="timeline-event" key={event.id}><span><Clock3 size={14}/>{formatDate(event.createdAt)}</span><strong>{event.kind === 'intercorrencia' ? 'Intercorrência' : 'Evolução'}</strong><pre>{event.text}</pre><button type="button" onClick={()=>updatePatient({events:selected.events.filter((item)=>item.id!==event.id)})}><Trash2 size={14}/></button></article>)}
+            {(selected.events || []).map((event)=><article className="timeline-event" key={event.id}><span><Clock3 size={14}/>{formatDate(event.createdAt)}</span><strong>{event.kind === 'intercorrencia' ? 'Intercorrência' : 'Evolução'}</strong><pre>{event.text}</pre><button type="button" className="plantao-icon-button plantao-icon-danger timeline-delete" aria-label="Excluir registro da linha do tempo" title="Excluir registro" onClick={()=>setConfirmDialog({title:'Excluir este registro?',message:'O registro será removido da linha do tempo deste paciente.',confirmLabel:'Excluir registro',onConfirm:()=>updatePatient({events:selected.events.filter((item)=>item.id!==event.id)})})}><Trash2 size={14}/></button></article>)}
           </div>
         </Card> : <div className="empty-state tall"><History size={32}/><strong>Selecione um paciente</strong></div>
       )}
@@ -540,16 +781,17 @@ ${snippet.text}` : snippet.text });
           </Card>
           <Card title="Segurança e backup" kicker="Controle do usuário">
             <div className="grid-2 compact-grid">
-              <button type="button" className="secondary-button" onClick={exportBackup}><Download size={17}/> Exportar backup criptografado</button>
-              <button type="button" className="secondary-button" onClick={()=>importRef.current?.click()}><Upload size={17}/> Importar backup</button>
+              <button type="button" className="plantao-action plantao-action-secondary plantao-action-wide" onClick={exportBackup}><span className="plantao-button-icon"><Download size={17}/></span><span className="plantao-action-copy"><strong>Exportar backup</strong><small>Arquivo criptografado para guarda segura</small></span><ChevronRight size={16}/></button>
+              <button type="button" className="plantao-action plantao-action-secondary plantao-action-wide" onClick={()=>importRef.current?.click()}><span className="plantao-button-icon"><Upload size={17}/></span><span className="plantao-action-copy"><strong>Importar backup</strong><small>Restaurar um cofre compatível</small></span><ChevronRight size={16}/></button>
               <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(e)=>importBackup(e.target.files?.[0])}/>
             </div>
             <label className="field top-gap"><span>Bloqueio automático</span><div className="field-box"><select value={data.preferences?.autoLockMinutes || 15} onChange={(e)=>setData((old)=>({...old,preferences:{...old.preferences,autoLockMinutes:Number(e.target.value)}}))}><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">60 minutos</option></select></div></label>
             <div className="notice-box top-gap">Este cofre é criptografado localmente no navegador. Não é um prontuário eletrônico certificado, não substitui o sistema institucional e pode ser perdido se o navegador for apagado sem backup.</div>
-            <button type="button" className="danger-button top-gap" onClick={()=>{if(confirm('Apagar permanentemente todo o cofre deste dispositivo?')){resetVault();lock();}}}><Trash2 size={16}/> Apagar cofre local</button>
+            <button type="button" className="plantao-action plantao-action-danger plantao-action-wide top-gap" onClick={()=>setConfirmDialog({title:'Apagar todo o cofre local?',message:'Todos os pacientes, modelos e registros serão apagados permanentemente deste dispositivo. Esta ação não pode ser desfeita.',confirmLabel:'Apagar cofre',onConfirm:()=>{resetVault();lock();}})}><span className="plantao-button-icon"><Trash2 size={16}/></span><span className="plantao-action-copy"><strong>Apagar cofre local</strong><small>Ação permanente e irreversível</small></span><ChevronRight size={18}/></button>
           </Card>
         </>
       )}
+      <ConfirmDialog config={confirmDialog} onClose={()=>setConfirmDialog(null)} />
     </div>
   );
 }

@@ -21,9 +21,9 @@ function captureScreenContext() {
 async function copyToClipboard(text) {
   try {
     await navigator.clipboard.writeText(text);
-    window.dispatchEvent(new CustomEvent('toast', { detail: 'Resposta da IA copiada.' }));
+    window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Resposta da IA copiada.' }));
   } catch {
-    window.dispatchEvent(new CustomEvent('toast', { detail: 'Não foi possível copiar.' }));
+    window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Não foi possível copiar.' }));
   }
 }
 

@@ -1,23 +1,30 @@
-# SIMMples Suite v18 — Clinical OS
+# SIMMples Suite v19 — Plantão refinado e revisão de qualidade
 
-Versão com redesign visual contemporâneo, busca inteligente de ECG e o novo SIMMples Plantão.
+Versão de acabamento da SIMMples Suite com revisão visual e textual do SIMMples Plantão, preservando todas as funcionalidades da v18.
 
-## Principais mudanças
+## Melhorias do SIMMples Plantão
 
-- Nova linguagem visual: navy profundo, ciano elétrico, roxo, verde, amarelo e vermelho semânticos.
-- Cards curvos, superfícies translúcidas, transições e feedbacks visuais.
-- Valores clínicos com coloração semântica em todos os módulos.
-- Busca do SIMMples ECG com busca parcial, aliases, siglas e tolerância a erros de digitação.
-- Integração entre módulos e SIMMples Plantão pelo botão Plantão em relatórios.
-- SIMMples Plantão com cofre local AES-GCM, pacientes, evoluções, intercorrências, modelos, hipóteses locais, linha do tempo e backup criptografado.
-- SIMMples INTOX ampliado com triagem ABCDE, toxidromes, ECG/laboratórios, gaps, biblioteca de agentes e resumo clínico.
-- SIMMples PEÇONHA ampliado com animais, classificação dinâmica, exames dirigidos, soroterapia de referência, observação e notificação.
+- Botões de adicionar paciente, bloquear cofre, salvar modelo, registrar evolução, importar/exportar backup e confirmar ações redesenhados.
+- Ícones em superfícies próprias, hierarquia tipográfica, microinterações, brilho discreto e estados de hover/toque/foco.
+- Botão “Salvar como modelo” com descrição contextual e melhor responsividade no celular.
+- Diálogos de confirmação atualizados para o mesmo sistema visual.
+- Higienização das hipóteses diagnósticas para impedir fragmentos vazios, pontuação quebrada e textos como “Pista .”.
+- Resumo completo dos elementos clínicos reconhecidos em cada hipótese.
+- Remoção automática de modelos ou registros corrompidos/incompletos ao abrir cofres antigos.
+- Normalização segura de dados importados de versões anteriores.
+- Respostas opcionais da SIMM AI passam por limpeza textual antes de serem exibidas.
 
-## Segurança do SIMMples Plantão
+## Compatibilidade
 
-O cofre usa Web Crypto API com AES-GCM 256 e chave derivada por PBKDF2-SHA256. A senha não é armazenada. O armazenamento é local ao navegador e exige backup criptografado para evitar perda de dados.
+- Cofres criptografados criados na v18 continuam compatíveis.
+- Pacientes, modelos, linha do tempo e preferências existentes são preservados.
+- Nenhum módulo clínico anterior foi removido.
 
-Esta implementação não é um prontuário eletrônico certificado e não substitui o sistema institucional, políticas de privacidade, LGPD, governança clínica ou validação jurídica da instituição.
+## Segurança
+
+O SIMMples Plantão usa Web Crypto API, AES-GCM 256 e PBKDF2-SHA256. A senha não é armazenada. O cofre permanece local ao navegador e exige backup criptografado para reduzir risco de perda de dados.
+
+Esta ferramenta não é um prontuário eletrônico certificado e não substitui o sistema institucional, a governança clínica, políticas de privacidade ou validação jurídica/LGPD.
 
 ## Desenvolvimento
 
@@ -31,7 +38,3 @@ npm run dev
 ```bash
 npm run build
 ```
-
-## Vercel
-
-A pasta pode ser publicada diretamente. O endpoint opcional de IA permanece em `/api/simm-ai.js` e depende da variável de ambiente configurada no projeto.
