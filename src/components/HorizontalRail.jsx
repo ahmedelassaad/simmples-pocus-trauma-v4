@@ -1,6 +1,10 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+function isInteractiveTarget(target) {
+  return Boolean(target?.closest?.('button, a, input, textarea, select, label, summary, [role="button"], [data-no-rail-drag]'));
+}
+
 export function HorizontalRail({
   children,
   className = '',
@@ -8,10 +12,11 @@ export function HorizontalRail({
   ariaLabel = 'Conteúdo horizontal',
   step = 0.72,
   showControls = true,
-  viewportRole
+  viewportRole,
+  dragEnabled = true
 }) {
   const viewportRef = useRef(null);
-  const dragRef = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+  const dragRef = useRef({ tracking: false, dragging: false, startX: 0, startScroll: 0, pointerId: null });
   const [metrics, setMetrics] = useState({ left: 0, max: 0, client: 1, scroll: 1 });
 
   const refresh = () => {
@@ -25,13 +30,15 @@ export function HorizontalRail({
     const node = viewportRef.current;
     if (!node) return undefined;
     refresh();
-    const resize = new ResizeObserver(refresh);
-    resize.observe(node);
-    Array.from(node.children).forEach((child) => resize.observe(child));
+    const resize = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(refresh) : null;
+    resize?.observe(node);
+    Array.from(node.children).forEach((child) => resize?.observe(child));
     node.addEventListener('scroll', refresh, { passive: true });
     window.addEventListener('resize', refresh);
+    const fallbackTimer = window.setTimeout(refresh, 60);
     return () => {
-      resize.disconnect();
+      window.clearTimeout(fallbackTimer);
+      resize?.disconnect();
       node.removeEventListener('scroll', refresh);
       window.removeEventListener('resize', refresh);
     };
@@ -51,27 +58,43 @@ export function HorizontalRail({
   };
 
   const pointerDown = (event) => {
-    if (event.pointerType === 'touch') return;
     const node = viewportRef.current;
-    if (!node) return;
-    dragRef.current = { active: true, startX: event.clientX, startScroll: node.scrollLeft, moved: false };
-    node.setPointerCapture?.(event.pointerId);
-    node.classList.add('is-dragging');
+    if (!dragEnabled || event.pointerType === 'touch' || !node || isInteractiveTarget(event.target)) {
+      dragRef.current = { tracking: false, dragging: false, startX: 0, startScroll: 0, pointerId: null };
+      return;
+    }
+    dragRef.current = {
+      tracking: true,
+      dragging: false,
+      startX: event.clientX,
+      startScroll: node.scrollLeft,
+      pointerId: event.pointerId
+    };
   };
 
   const pointerMove = (event) => {
     const node = viewportRef.current;
-    if (!node || !dragRef.current.active) return;
-    const delta = event.clientX - dragRef.current.startX;
-    if (Math.abs(delta) > 5) dragRef.current.moved = true;
-    node.scrollLeft = dragRef.current.startScroll - delta;
+    const drag = dragRef.current;
+    if (!node || !drag.tracking || drag.pointerId !== event.pointerId) return;
+    const delta = event.clientX - drag.startX;
+    if (!drag.dragging && Math.abs(delta) < 7) return;
+    if (!drag.dragging) {
+      drag.dragging = true;
+      node.setPointerCapture?.(event.pointerId);
+      node.classList.add('is-dragging');
+    }
+    event.preventDefault();
+    node.scrollLeft = drag.startScroll - delta;
   };
 
   const pointerEnd = (event) => {
     const node = viewportRef.current;
-    dragRef.current.active = false;
-    node?.releasePointerCapture?.(event.pointerId);
-    node?.classList.remove('is-dragging');
+    const drag = dragRef.current;
+    if (drag.dragging && drag.pointerId === event.pointerId) {
+      node?.releasePointerCapture?.(event.pointerId);
+      node?.classList.remove('is-dragging');
+    }
+    dragRef.current = { tracking: false, dragging: false, startX: 0, startScroll: 0, pointerId: null };
   };
 
   return (
@@ -83,6 +106,7 @@ export function HorizontalRail({
           onClick={() => move(-1)}
           disabled={!canLeft}
           aria-label="Rolar para a esquerda"
+          data-no-rail-drag
         >
           <ChevronLeft size={16} />
         </button>
@@ -96,8 +120,6 @@ export function HorizontalRail({
         onPointerMove={pointerMove}
         onPointerUp={pointerEnd}
         onPointerCancel={pointerEnd}
-        onPointerLeave={(event) => dragRef.current.active && pointerEnd(event)}
-        onClickCapture={(event) => { if (dragRef.current.moved) { event.preventDefault(); event.stopPropagation(); dragRef.current.moved = false; } }}
       >
         {children}
       </div>
@@ -108,6 +130,7 @@ export function HorizontalRail({
           onClick={() => move(1)}
           disabled={!canRight}
           aria-label="Rolar para a direita"
+          data-no-rail-drag
         >
           <ChevronRight size={16} />
         </button>

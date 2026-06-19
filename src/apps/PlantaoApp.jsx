@@ -194,11 +194,11 @@ function frequentSnippets(data) {
   return [...counts.values()].filter((item) => item.count >= 2).sort((a, b) => b.count - a.count).slice(0, 8);
 }
 
-function TextArea({ label, value, onChange, placeholder, rows = 6 }) {
+function TextArea({ label, value, onChange, placeholder, rows = 6, fieldKey = '' }) {
   return (
     <label className="field text-field">
       <span>{label}</span>
-      <textarea value={value || ''} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} rows={rows} />
+      <textarea data-plantao-field={fieldKey || undefined} value={value || ''} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} rows={rows} />
     </label>
   );
 }
@@ -318,6 +318,7 @@ export function PlantaoApp() {
   const [aiAnswer, setAiAnswer] = useState('');
   const [templateDraft, setTemplateDraft] = useState({ name: '', type: 'evolucao', content: '' });
   const [confirmDialog, setConfirmDialog] = useState(null);
+  const [expandedHypothesis, setExpandedHypothesis] = useState('');
   const inactivityRef = useRef(null);
   const importRef = useRef(null);
 
@@ -382,12 +383,50 @@ export function PlantaoApp() {
   };
 
 
+  const focusClinicalField = (field) => {
+    window.setTimeout(() => {
+      const target = document.querySelector(`[data-plantao-field="${field}"]`);
+      target?.focus?.();
+      target?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }, 40);
+  };
+
   const insertSnippet = (snippet) => {
-    if (!selected) return;
-    const current = selected[snippet.field] || '';
-    updatePatient({ [snippet.field]: current ? `${current}
-${snippet.text}` : snippet.text });
-    window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Trecho inserido. Edite livremente.' }));
+    if (!selectedId || !snippet?.field || !snippet?.text) return;
+    setData((old) => ({
+      ...old,
+      patients: old.patients.map((patient) => {
+        if (patient.id !== selectedId) return patient;
+        const current = String(patient[snippet.field] || '').trim();
+        const alreadyPresent = normalize(current).includes(normalize(snippet.text));
+        const nextValue = alreadyPresent ? current : [current, snippet.text].filter(Boolean).join('\n');
+        return { ...patient, [snippet.field]: nextValue, updatedAt: new Date().toISOString() };
+      })
+    }));
+    setTab('evolucao');
+    focusClinicalField(snippet.field);
+    window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Trecho inserido no campo correspondente.' }));
+  };
+
+  const addHypothesisToAssessment = (item) => {
+    if (!selectedId || !item?.label) return;
+    setData((old) => ({
+      ...old,
+      patients: old.patients.map((patient) => {
+        if (patient.id !== selectedId) return patient;
+        const current = String(patient.assessment || '').trim();
+        const line = item.why ? `${item.label}: ${item.why}` : item.label;
+        const alreadyPresent = normalize(current).includes(normalize(item.label));
+        return {
+          ...patient,
+          assessment: alreadyPresent ? current : [current, line].filter(Boolean).join('\n'),
+          updatedAt: new Date().toISOString()
+        };
+      })
+    }));
+    setTab('evolucao');
+    focusClinicalField('assessment');
+    window.dispatchEvent(new CustomEvent('simm-toast', { detail: 'Hipótese adicionada à impressão diagnóstica.' }));
   };
 
   const createPatient = () => {
@@ -599,11 +638,11 @@ ${snippet.text}` : snippet.text });
               </HorizontalRail>
             </div>
             <label className="field"><span>Queixa principal</span><div className="field-box"><input value={selected.chiefComplaint} onChange={(e)=>updatePatient({chiefComplaint:e.target.value})} placeholder="Motivo principal do atendimento" /></div></label>
-            <TextArea label="História clínica" value={selected.story} onChange={(value)=>updatePatient({story:value})} placeholder="Escreva livremente. As hipóteses são atualizadas enquanto você digita..." rows={8}/>
-            <TextArea label="Exame físico" value={selected.exam} onChange={(value)=>updatePatient({exam:value})} placeholder="Exame geral, neurológico, cardiovascular, respiratório, abdominal..." rows={7}/>
-            <TextArea label="POCUS / procedimentos" value={selected.pocus} onChange={(value)=>updatePatient({pocus:value})} placeholder="Achados, janelas, limitações e integração clínica..." rows={5}/>
-            <TextArea label="Impressão diagnóstica" value={selected.assessment} onChange={(value)=>updatePatient({assessment:value})} placeholder="Hipótese principal e diferenciais..." rows={5}/>
-            <TextArea label="Conduta / plano" value={selected.plan} onChange={(value)=>updatePatient({plan:value})} placeholder="Condutas, pendências, metas e reavaliação..." rows={6}/>
+            <TextArea fieldKey="story" label="História clínica" value={selected.story} onChange={(value)=>updatePatient({story:value})} placeholder="Escreva livremente. As hipóteses são atualizadas enquanto você digita..." rows={8}/>
+            <TextArea fieldKey="exam" label="Exame físico" value={selected.exam} onChange={(value)=>updatePatient({exam:value})} placeholder="Exame geral, neurológico, cardiovascular, respiratório, abdominal..." rows={7}/>
+            <TextArea fieldKey="pocus" label="POCUS / procedimentos" value={selected.pocus} onChange={(value)=>updatePatient({pocus:value})} placeholder="Achados, janelas, limitações e integração clínica..." rows={5}/>
+            <TextArea fieldKey="assessment" label="Impressão diagnóstica" value={selected.assessment} onChange={(value)=>updatePatient({assessment:value})} placeholder="Hipótese principal e diferenciais..." rows={5}/>
+            <TextArea fieldKey="plan" label="Conduta / plano" value={selected.plan} onChange={(value)=>updatePatient({plan:value})} placeholder="Condutas, pendências, metas e reavaliação..." rows={6}/>
             <div className="button-row top-gap">
               <button type="button" className="plantao-action plantao-action-secondary" onClick={()=>addEvent('evolucao')}>
                 <span className="plantao-button-icon"><History size={17}/></span>
@@ -613,7 +652,7 @@ ${snippet.text}` : snippet.text });
             </div>
           </Card>
           <Card title="Intercorrência rápida" kicker="Registro cronológico">
-            <TextArea label="Descrição" value={selected.notes} onChange={(value)=>updatePatient({notes:value})} placeholder="Evento, horário, sinais vitais, avaliação, conduta e resposta..." rows={5}/>
+            <TextArea fieldKey="notes" label="Descrição" value={selected.notes} onChange={(value)=>updatePatient({notes:value})} placeholder="Evento, horário, sinais vitais, avaliação, conduta e resposta..." rows={5}/>
             <button type="button" className="plantao-action plantao-action-primary plantao-action-wide" onClick={()=>addEvent('intercorrencia')}><span className="plantao-button-icon"><NotebookPen size={17}/></span><span className="plantao-action-copy"><strong>Registrar intercorrência</strong><small>Adicionar evento à linha do tempo</small></span><ChevronRight size={18}/></button>
           </Card>
         </> : <div className="empty-state tall"><UserRound size={32}/><strong>Selecione um paciente</strong><span>Acesse a aba Pacientes para abrir ou criar um registro.</span></div>
@@ -624,16 +663,31 @@ ${snippet.text}` : snippet.text });
           <Card title="Hipóteses dinâmicas" kicker="Motor clínico local">
             <div className="hypothesis-intro"><BrainCircuit size={22}/><p>O motor local interpreta contexto, negações, dados objetivos e combinações sindrômicas. Ele prioriza coerência clínica e não substitui avaliação médica nem confirmação diagnóstica.</p></div>
             <div className="hypothesis-grid">
-              {hypotheses.length ? hypotheses.map((item)=>(
-                <article key={item.label} className={`hypothesis-card hypothesis-${item.level}`}>
-                  <div className="hypothesis-card-head"><span className="hypothesis-confidence">{item.confidence}</span><span className="hypothesis-count">Índice {item.score.toFixed(1)}</span></div>
-                  <strong>{item.label}</strong>
-                  <p>{item.why}</p>
-                  {item.evidenceSummary && <small className="hypothesis-summary">{item.evidenceSummary}</small>}
-                  <div className="hypothesis-evidence" aria-label="Elementos clínicos reconhecidos">{item.evidence.map((evidence)=><span key={evidence}>{evidence}</span>)}</div>
-                  {item.contrary?.length > 0 && <div className="hypothesis-contrary" aria-label="Elementos contrários">{item.contrary.map((evidence)=><span key={evidence}>{evidence}</span>)}</div>}
-                </article>
-              )) : <div className="empty-state"><Sparkles size={26}/><strong>Continue preenchendo o caso</strong><span>As sugestões aparecerão quando houver achados clínicos suficientes.</span></div>}
+              {hypotheses.length ? hypotheses.map((item)=>{
+                const isExpanded = expandedHypothesis === item.label;
+                const toggleHypothesis = () => setExpandedHypothesis(isExpanded ? '' : item.label);
+                return (
+                  <article key={item.label} className={`hypothesis-card hypothesis-${item.level} ${isExpanded ? 'hypothesis-expanded' : ''}`}>
+                    <button type="button" className="hypothesis-card-toggle" aria-expanded={isExpanded} onClick={toggleHypothesis}>
+                      <div className="hypothesis-card-head"><span className="hypothesis-confidence">{item.confidence}</span><span className="hypothesis-count">Índice {item.score.toFixed(1)}</span></div>
+                      <strong>{item.label}</strong>
+                      <p>{item.why}</p>
+                      <span className="hypothesis-expand-label">{isExpanded ? 'Recolher detalhes' : 'Ver elementos reconhecidos'}</span>
+                    </button>
+                    <div className="hypothesis-detail-panel" hidden={!isExpanded}>
+                      {item.evidenceSummary && <small className="hypothesis-summary">{item.evidenceSummary}</small>}
+                      <div className="hypothesis-evidence" aria-label="Elementos clínicos reconhecidos">{item.evidence.map((evidence)=><span key={evidence}>{evidence}</span>)}</div>
+                      {item.contrary?.length > 0 && <div className="hypothesis-contrary" aria-label="Elementos contrários">{item.contrary.map((evidence)=><span key={evidence}>{evidence}</span>)}</div>}
+                    </div>
+                    <div className="hypothesis-card-footer">
+                      <button type="button" className="hypothesis-add-button" onClick={() => addHypothesisToAssessment(item)}>
+                        <CheckCircle2 size={14}/>
+                        Adicionar à impressão
+                      </button>
+                    </div>
+                  </article>
+                );
+              }) : <div className="empty-state"><Sparkles size={26}/><strong>Continue preenchendo o caso</strong><span>As sugestões aparecerão quando houver achados clínicos suficientes.</span></div>}
             </div>
           </Card>
           <Card title="Revisão opcional pela SIMM AI" kicker="Privacidade primeiro">

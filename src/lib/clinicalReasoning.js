@@ -21,7 +21,7 @@ const UNCERTAINTY_PATTERNS = [
 
 const CONCEPTS = {
   chestPain: { label: 'Dor/opressão torácica', aliases: ['dor toracica', 'dor no peito', 'opressao toracica', 'precordialgia', 'angina'] },
-  ischemicPain: { label: 'Características isquêmicas da dor', aliases: ['dor opressiva', 'dor em aperto', 'irradiacao para braco', 'irradiacao mandibula', 'irradiacao para mandibula', 'sudorese fria', 'diaforese'] },
+  ischemicPain: { label: 'Características isquêmicas da dor', aliases: ['dor opressiva', 'dor toracica opressiva', 'opressao no peito', 'dor em aperto', 'irradiacao para braco', 'irradiacao para braco esquerdo', 'irradiada para braco', 'irradiando para braco', 'irradiacao mandibula', 'irradiacao para mandibula', 'irradiada para mandibula', 'sudorese fria', 'sudorese', 'diaforese'] },
   ischemicEcg: { label: 'Alteração isquêmica no ECG', aliases: ['supra de st', 'infradesnivelamento de st', 'infra de st', 'wellens', 'de winter', 'aslanger', 'omi', 'stemi'] },
   troponin: { label: 'Troponina alterada', aliases: ['troponina elevada', 'troponina positiva', 'delta de troponina', 'curva de troponina'] },
   dyspnea: { label: 'Dispneia', aliases: ['dispneia', 'falta de ar', 'cansaco para respirar', 'desconforto respiratorio'] },
@@ -91,7 +91,7 @@ const CONCEPTS = {
 
 const RULES = [
   {
-    id: 'acs', label: 'Síndrome coronariana aguda', level: 'danger', threshold: 4.2,
+    id: 'acs', label: 'Síndrome coronariana aguda', level: 'danger', threshold: 4.0,
     concepts: { chestPain: 2.1, ischemicPain: 1.3, ischemicEcg: 3.5, troponin: 3.5 },
     requireAny: ['chestPain', 'ischemicEcg', 'troponin'],
     summary: 'Dor compatível, biomarcador ou alteração isquêmica sustentam a possibilidade de síndrome coronariana aguda.'
@@ -423,6 +423,7 @@ export function deriveClinicalHypotheses(patient = {}, limit = 6) {
 
 export const CLINICAL_REASONING_TEST_CASES = [
   { name: 'SCA', story: 'Dor torácica opressiva com sudorese fria e supra de ST em parede inferior.', expected: 'Síndrome coronariana aguda' },
+  { name: 'SCA típica sem ECG', story: 'Dor torácica opressiva irradiada para braço esquerdo, associada a sudorese.', expected: 'Síndrome coronariana aguda' },
   { name: 'Nega SCA', story: 'Nega dor torácica, nega dispneia e nega febre. Refere dor lombar mecânica.', expected: null },
   { name: 'Sepse urinária', story: 'Febre e disúria há 2 dias. PAS 82, lactato 4,1 e oligúria.', expected: 'Sepse / choque séptico' },
   { name: 'TEP', story: 'Dispneia súbita, dor pleurítica, FC 128 e edema unilateral de perna.', expected: 'Tromboembolismo pulmonar' },

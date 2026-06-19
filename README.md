@@ -48,3 +48,18 @@ Validação rápida do motor:
 ```bash
 node scripts-clinical-reasoning-check.mjs
 ```
+
+## v21 — Plantão com interações restauradas
+
+A versão v21 corrige a regressão introduzida no componente de navegação horizontal da v20. Botões dentro de trilhos horizontais voltaram a receber cliques normalmente, sem perder rolagem por toque, setas ou arraste em áreas livres.
+
+Principais correções:
+
+- atalhos de preenchimento rápido voltaram a inserir conteúdo nos campos corretos;
+- a aba Hipóteses voltou a responder normalmente;
+- cartões de hipótese agora podem ser expandidos;
+- cada hipótese pode ser adicionada diretamente à impressão diagnóstica;
+- o foco é levado automaticamente ao campo alterado;
+- inserções repetidas idênticas não duplicam o mesmo trecho;
+- suporte defensivo para navegadores sem `ResizeObserver`;
+- motor clínico ampliado para reconhecer descrições comuns de dor torácica isquêmica.
