@@ -9,6 +9,8 @@ import { Card, Result } from '../components/Layout.jsx';
 import { Segmented } from '../components/Inputs.jsx';
 import { CopyButton } from '../components/CopyButton.jsx';
 import { hasVault, importEncryptedVault, loadVault, readEncryptedVault, resetVault, saveVault } from '../lib/secureVault.js';
+import { deriveClinicalHypotheses } from '../lib/clinicalReasoning.js';
+import { HorizontalRail } from '../components/HorizontalRail.jsx';
 
 const DEFAULT_TEMPLATES = [
   {
@@ -59,85 +61,6 @@ const QUICK_SNIPPETS = [
   { label: 'Reavaliação programada', field: 'plan', text: 'Reavaliar clínica, sinais vitais e resposta às medidas instituídas.' }
 ];
 
-const HYPOTHESIS_RULES = [
-  { label: 'Síndrome coronariana aguda', level: 'danger', why: 'O texto contém achados compatíveis com isquemia miocárdica aguda.', signals: [
-    { label: 'Dor ou opressão torácica', terms: ['dor torac', 'opressao torac', 'opressiva'] },
-    { label: 'Troponina alterada', terms: ['troponina elev', 'troponina positiv', 'delta de tropon'] },
-    { label: 'Alteração isquêmica no ECG', terms: ['supra de st', 'infra de st', 'isquemia no ecg', 'wellens', 'de winter'] }
-  ]},
-  { label: 'Edema agudo de pulmão / insuficiência cardíaca', level: 'warning', minScore: 2, why: 'Há sinais de congestão pulmonar ou insuficiência cardíaca descompensada.', signals: [
-    { label: 'Dispneia', terms: ['dispneia', 'falta de ar'] },
-    { label: 'Congestão pulmonar', terms: ['edema pulmonar', 'linhas b', 'b-lines', 'crepitacoes', 'estertores'] },
-    { label: 'Hipoxemia', terms: ['hipoxemia', 'saturacao baixa', 'dessaturacao'] }
-  ]},
-  { label: 'Tromboembolismo pulmonar', level: 'danger', minScore: 2, why: 'Os achados descritos podem ocorrer em tromboembolismo pulmonar.', signals: [
-    { label: 'Dispneia ou dor pleurítica', terms: ['dispneia', 'dor pleurit'] },
-    { label: 'Taquicardia', terms: ['taquicardia'] },
-    { label: 'Sinais de TVP', terms: ['trombose venosa', 'tvp', 'membro inferior inchado'] },
-    { label: 'Sobrecarga de ventrículo direito', terms: ['vd dilat', 'strain de vd', 'sobrecarga de vd'] }
-  ]},
-  { label: 'Sepse / choque séptico', level: 'danger', minScore: 2, why: 'Há pistas de infecção associada a disfunção orgânica ou hipoperfusão.', signals: [
-    { label: 'Infecção ou febre', terms: ['febre', 'foco infecc', 'sepse', 'calafrios'] },
-    { label: 'Hipotensão', terms: ['hipotensao', 'pam baixa'] },
-    { label: 'Lactato elevado', terms: ['lactato elev', 'hiperlactatemia'] },
-    { label: 'Disfunção orgânica', terms: ['oliguria', 'rebaixamento', 'disfuncao organica'] }
-  ]},
-  { label: 'AVC agudo', level: 'danger', why: 'O texto descreve déficit neurológico focal ou sinal cortical de início agudo.', signals: [
-    { label: 'Déficit focal', terms: ['deficit focal', 'hemiparesia', 'hemiplegia'] },
-    { label: 'Afasia', terms: ['afasia'] },
-    { label: 'Desvio do olhar', terms: ['desvio do olhar'] },
-    { label: 'NIHSS pontuado', terms: ['nihss'] }
-  ]},
-  { label: 'Hemorragia subaracnoide', level: 'danger', why: 'A descrição contém elementos típicos de cefaleia súbita potencialmente secundária a HSA.', signals: [
-    { label: 'Cefaleia súbita intensa', terms: ['pior dor da vida', 'cefaleia subita', 'cefaleia em trovoada'] },
-    { label: 'Sinais meníngeos', terms: ['rigidez de nuca', 'meningismo'] },
-    { label: 'HSA mencionada', terms: ['hemorragia subaracnoide', 'hsa'] }
-  ]},
-  { label: 'Abdome agudo / isquemia mesentérica', level: 'warning', minScore: 2, why: 'Dor abdominal associada a sinais de irritação peritoneal ou hipoperfusão exige investigação urgente.', signals: [
-    { label: 'Dor abdominal', terms: ['dor abdominal'] },
-    { label: 'Irritação peritoneal', terms: ['defesa abdominal', 'peritonismo', 'irritacao peritoneal'] },
-    { label: 'Hipoperfusão', terms: ['lactato elev', 'choque', 'hipoperfusao'] }
-  ]},
-  { label: 'Hemorragia digestiva', level: 'warning', why: 'O texto descreve exteriorização de sangramento gastrointestinal.', signals: [
-    { label: 'Hematêmese', terms: ['hematemese'] }, { label: 'Melena', terms: ['melena'] }, { label: 'Hematoquezia', terms: ['hematoquezia'] }, { label: 'Sangramento digestivo', terms: ['sangramento digestivo', 'hemorragia digestiva'] }
-  ]},
-  { label: 'Choque hemorrágico no trauma', level: 'danger', minScore: 2, why: 'Trauma associado a possível fonte hemorrágica ou sinais de choque.', signals: [
-    { label: 'Trauma relevante', terms: ['trauma', 'acidente', 'queda de altura'] }, { label: 'FAST positivo', terms: ['fast positivo', 'liquido livre'] }, { label: 'Fonte pélvica', terms: ['fratura pelvica', 'instabilidade pelvica'] }, { label: 'Choque', terms: ['choque', 'hipotensao', 'hipoperfusao'] }
-  ]},
-  { label: 'Crise asmática / broncoespasmo', level: 'warning', why: 'Há sinais de obstrução expiratória compatíveis com broncoespasmo.', signals: [
-    { label: 'Sibilância', terms: ['sibilos', 'sibilancia'] }, { label: 'Broncoespasmo', terms: ['broncoespasmo'] }, { label: 'Asma', terms: ['asma'] }, { label: 'Expiração prolongada', terms: ['expiracao prolongada'] }
-  ]},
-  { label: 'Exacerbação de DPOC / insuficiência ventilatória', level: 'warning', minScore: 2, why: 'Doença obstrutiva associada a retenção de CO₂ ou alteração do nível de consciência.', signals: [
-    { label: 'DPOC', terms: ['dpoc'] }, { label: 'Hipercapnia', terms: ['hipercapnia', 'pco2 elev'] }, { label: 'Sonolência', terms: ['sonolencia', 'rebaixamento'] }
-  ]},
-  { label: 'Lesão renal aguda / distúrbio eletrolítico', level: 'warning', why: 'O texto contém sinais de disfunção renal ou alteração eletrolítica relevante.', signals: [
-    { label: 'Oligúria', terms: ['oliguria', 'anuria'] }, { label: 'Creatinina elevada', terms: ['creatinina elev', 'funcao renal alterada'] }, { label: 'Hipercalemia', terms: ['hipercalemia', 'potassio elev'] }
-  ]},
-  { label: 'Crise epiléptica / estado pós-ictal', level: 'warning', why: 'Há descrição de evento convulsivo ou alteração neurológica pós-ictal.', signals: [
-    { label: 'Convulsão', terms: ['convulsao', 'crise tonico-clonica'] }, { label: 'Estado pós-ictal', terms: ['pos-ictal', 'pos ictal'] }, { label: 'Paralisia de Todd', terms: ['paralisia de todd', 'todd'] }
-  ]},
-  { label: 'Intoxicação / encefalopatia tóxico-metabólica', level: 'warning', minScore: 2, why: 'Alteração de consciência associada a pistas toxicológicas ou metabólicas.', signals: [
-    { label: 'Rebaixamento do nível de consciência', terms: ['rebaixamento', 'coma'] }, { label: 'Exposição tóxica', terms: ['intoxicacao', 'ingestao de', 'exposicao a'] }, { label: 'Miose', terms: ['miose'] }
-  ]},
-  { label: 'Meningite / encefalite', level: 'danger', minScore: 2, why: 'Febre associada a sinais meníngeos ou alteração neurológica sugere infecção do sistema nervoso central.', signals: [
-    { label: 'Febre', terms: ['febre'] }, { label: 'Rigidez de nuca', terms: ['rigidez de nuca', 'meningismo'] }, { label: 'Alteração neurológica', terms: ['confusao', 'rebaixamento', 'convulsao'] }
-  ]},
-  { label: 'Síndrome aórtica aguda', level: 'danger', why: 'Dor abrupta associada a sinais vasculares ou suspeita de comprometimento aórtico.', signals: [
-    { label: 'Dor abrupta dorsal ou torácica', terms: ['dor dorsal subita', 'dor rasgando', 'dor toracica subita'] }, { label: 'Assimetria de pulsos', terms: ['assimetria de pulso', 'diferenca de pressao'] }, { label: 'Aorta alterada', terms: ['disseccao de aorta', 'sindrome aortica', 'flap aortico'] }
-  ]},
-  { label: 'Tamponamento cardíaco', level: 'danger', minScore: 2, why: 'Instabilidade hemodinâmica associada a achados pericárdicos ou congestão venosa.', signals: [
-    { label: 'Hipotensão', terms: ['hipotensao', 'choque'] }, { label: 'Derrame pericárdico', terms: ['derrame pericardico'] }, { label: 'Sinais de tamponamento', terms: ['tamponamento', 'colapso de vd', 'colapso de ad'] }, { label: 'VCI pletórica', terms: ['vci pletorica', 'veia cava pletorica'] }
-  ]},
-  { label: 'Pneumotórax', level: 'danger', why: 'Há achados clínicos ou ultrassonográficos compatíveis com pneumotórax.', signals: [
-    { label: 'Ausência de deslizamento pleural', terms: ['ausencia de sliding', 'sem lung sliding', 'ausencia de deslizamento'] }, { label: 'Lung point', terms: ['lung point'] }, { label: 'Pneumotórax mencionado', terms: ['pneumotorax'] }
-  ]},
-  { label: 'Cetoacidose diabética', level: 'warning', minScore: 2, why: 'Hiperglicemia associada a cetose e acidose com ânion gap elevado.', signals: [
-    { label: 'Hiperglicemia', terms: ['hiperglicemia', 'glicemia elev'] }, { label: 'Cetose', terms: ['cetonemia', 'cetonuria', 'cetose'] }, { label: 'Acidose com ânion gap', terms: ['anion gap elev', 'acidose metabolica'] }, { label: 'Cetoacidose mencionada', terms: ['cetoacidose'] }
-  ]},
-  { label: 'Taquiarritmia', level: 'warning', why: 'O texto contém sintomas ou achados eletrocardiográficos compatíveis com taquiarritmia.', signals: [
-    { label: 'Palpitações', terms: ['palpitacoes'] }, { label: 'Taquicardia', terms: ['taquicardia'] }, { label: 'QRS largo', terms: ['qrs largo'] }, { label: 'Arritmia documentada', terms: ['fibrilacao atrial', 'flutter', 'taquicardia ventricular', 'arritmia'] }
-  ]}
-];
 
 function uid(prefix = 'id') {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -256,32 +179,6 @@ function buildEvolutionText(patient, includeIdentification = false) {
   return [identification, body].filter(Boolean).join('\n\n');
 }
 
-function deriveHypotheses(patient) {
-  const source = normalize([
-    patient.chiefComplaint, patient.story, patient.exam, patient.pocus,
-    patient.assessment, patient.notes, patient.events?.map((item) => item.text).join(' ')
-  ].join(' '));
-  if (!source.trim()) return [];
-
-  return HYPOTHESIS_RULES.map((rule) => {
-    const evidence = rule.signals
-      .filter((signal) => signal.terms.some((term) => source.includes(normalize(term))))
-      .map((signal) => sanitizeClinicalPhrase(signal.label))
-      .filter(Boolean);
-    const uniqueEvidence = [...new Set(evidence)];
-    const score = uniqueEvidence.length;
-    const confidence = score >= 3 ? 'Compatibilidade alta' : score === 2 ? 'Compatibilidade moderada' : 'Compatibilidade inicial';
-    const label = sanitizeClinicalPhrase(rule.label, 'Hipótese clínica');
-    const why = completeSentence(rule.why, `O conjunto descrito pode ser compatível com ${label.toLowerCase()}`);
-    const evidenceSummary = uniqueEvidence.length
-      ? completeSentence(`Elementos reconhecidos: ${joinClinicalList(uniqueEvidence)}`)
-      : '';
-    return { ...rule, label, why, evidence: uniqueEvidence, evidenceSummary, score, confidence };
-  })
-    .filter((item) => item.score >= (item.minScore || 1) && item.label && item.why)
-    .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, 'pt-BR'))
-    .slice(0, 6);
-}
 
 function frequentSnippets(data) {
   const texts = data.patients.flatMap((patient) => patient.events || []).map((event) => event.text || '').filter((text) => text.length > 40);
@@ -425,7 +322,7 @@ export function PlantaoApp() {
   const importRef = useRef(null);
 
   const selected = data.patients.find((patient) => patient.id === selectedId) || null;
-  const hypotheses = useMemo(() => deriveHypotheses(selected || EMPTY_PATIENT), [selected]);
+  const hypotheses = useMemo(() => deriveClinicalHypotheses(selected || EMPTY_PATIENT), [selected]);
   const learnedSnippets = useMemo(() => frequentSnippets(data), [data]);
   const filteredPatients = useMemo(() => {
     const q = normalize(patientSearch);
@@ -697,7 +594,9 @@ ${snippet.text}` : snippet.text });
           <Card title="História e evolução" kicker="Texto aberto e editável">
             <div className="smart-composer-bar">
               <span><Sparkles size={14}/> Inserção rápida</span>
-              <div>{QUICK_SNIPPETS.map((snippet)=><button type="button" key={snippet.label} onClick={()=>insertSnippet(snippet)}>{snippet.label}</button>)}</div>
+              <HorizontalRail className="smart-composer-rail" viewportClassName="smart-composer-options" ariaLabel="Atalhos de texto clínico">
+                {QUICK_SNIPPETS.map((snippet)=><button type="button" key={snippet.label} onClick={()=>insertSnippet(snippet)}>{snippet.label}</button>)}
+              </HorizontalRail>
             </div>
             <label className="field"><span>Queixa principal</span><div className="field-box"><input value={selected.chiefComplaint} onChange={(e)=>updatePatient({chiefComplaint:e.target.value})} placeholder="Motivo principal do atendimento" /></div></label>
             <TextArea label="História clínica" value={selected.story} onChange={(value)=>updatePatient({story:value})} placeholder="Escreva livremente. As hipóteses são atualizadas enquanto você digita..." rows={8}/>
@@ -723,15 +622,16 @@ ${snippet.text}` : snippet.text });
       {tab === 'hipoteses' && (
         selected ? <>
           <Card title="Hipóteses dinâmicas" kicker="Motor clínico local">
-            <div className="hypothesis-intro"><BrainCircuit size={22}/><p>As sugestões abaixo são geradas localmente por padrões do texto. Elas não substituem raciocínio clínico, exame ou confirmação diagnóstica.</p></div>
+            <div className="hypothesis-intro"><BrainCircuit size={22}/><p>O motor local interpreta contexto, negações, dados objetivos e combinações sindrômicas. Ele prioriza coerência clínica e não substitui avaliação médica nem confirmação diagnóstica.</p></div>
             <div className="hypothesis-grid">
               {hypotheses.length ? hypotheses.map((item)=>(
                 <article key={item.label} className={`hypothesis-card hypothesis-${item.level}`}>
-                  <div className="hypothesis-card-head"><span className="hypothesis-confidence">{item.confidence}</span><span className="hypothesis-count">{item.score} {item.score===1?'achado':'achados'}</span></div>
+                  <div className="hypothesis-card-head"><span className="hypothesis-confidence">{item.confidence}</span><span className="hypothesis-count">Índice {item.score.toFixed(1)}</span></div>
                   <strong>{item.label}</strong>
                   <p>{item.why}</p>
                   {item.evidenceSummary && <small className="hypothesis-summary">{item.evidenceSummary}</small>}
                   <div className="hypothesis-evidence" aria-label="Elementos clínicos reconhecidos">{item.evidence.map((evidence)=><span key={evidence}>{evidence}</span>)}</div>
+                  {item.contrary?.length > 0 && <div className="hypothesis-contrary" aria-label="Elementos contrários">{item.contrary.map((evidence)=><span key={evidence}>{evidence}</span>)}</div>}
                 </article>
               )) : <div className="empty-state"><Sparkles size={26}/><strong>Continue preenchendo o caso</strong><span>As sugestões aparecerão quando houver achados clínicos suficientes.</span></div>}
             </div>

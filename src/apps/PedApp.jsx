@@ -3,6 +3,7 @@ import { Baby, Calculator, ClipboardList, Droplets, HeartPulse, ShieldAlert, The
 import { Card, Result } from '../components/Layout.jsx';
 import { NumberField, Segmented, SelectField, ToggleRow } from '../components/Inputs.jsx';
 import { CopyButton } from '../components/CopyButton.jsx';
+import { HorizontalRail } from '../components/HorizontalRail.jsx';
 import { clean, n } from '../lib/format.js';
 
 const tabs = [
@@ -141,12 +142,12 @@ export function PedApp() {
           <SelectField label="Unidade" value={patient.ageUnit} onChange={(v)=>setPatient({ ...patient, ageUnit: v })} options={ageUnitOptions} />
           <NumberField label="Peso" value={patient.weight} onChange={(v)=>setPatient({ ...patient, weight: v })} unit="kg" />
         </div>
-        <div className="ped-summary-strip top-gap">
+        <HorizontalRail className="ped-summary-rail top-gap" viewportClassName="ped-summary-strip" ariaLabel="Resumo pediátrico">
           <span><Baby size={15} />{currentBand.label}</span>
           <span>FC {currentBand.hr[0]}–{currentBand.hr[1]}</span>
           <span>FR {currentBand.rr[0]}–{currentBand.rr[1]}</span>
           <span>PAS mín. {currentBand.sbpLow}</span>
-        </div>
+        </HorizontalRail>
       </Card>
 
       <Segmented value={tab} onChange={setTab} options={tabs} />

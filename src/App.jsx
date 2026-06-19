@@ -1,6 +1,7 @@
 import { Activity, Ambulance, Baby, Biohazard, Brain, Bug, Calculator, ClipboardPlus, FlaskConical, HeartPulse, Pill, ScanLine, Syringe, Wind } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AppShell, Card } from './components/Layout.jsx';
+import { HorizontalRail } from './components/HorizontalRail.jsx';
 import { Toast } from './components/Toast.jsx';
 import { GasoApp } from './apps/GasoApp.jsx';
 import { VentApp } from './apps/VentApp.jsx';
@@ -40,7 +41,13 @@ function routeFromPath() {
 
 function SuiteDock({ active, onOpen }) {
   return (
-    <nav className="suite-dock suite-dock-top" aria-label="Trocar app da SIMM Suite">
+    <HorizontalRail
+      className="suite-dock-rail"
+      viewportClassName="suite-dock suite-dock-top"
+      ariaLabel="Trocar app da SIMM Suite"
+      viewportRole="navigation"
+      step={0.82}
+    >
       {Object.entries(apps).map(([slug, app]) => {
         const Icon = app.icon;
         return (
@@ -55,7 +62,7 @@ function SuiteDock({ active, onOpen }) {
           </button>
         );
       })}
-    </nav>
+    </HorizontalRail>
   );
 }
 

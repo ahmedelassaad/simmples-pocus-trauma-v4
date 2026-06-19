@@ -38,3 +38,13 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## v20 — motor clínico local e navegação horizontal
+
+A versão v20 substitui a associação simples por palavras por um motor clínico determinístico com contexto, negação, dados objetivos, combinações sindrômicas e limiares de coerência. A navegação horizontal recebeu um novo componente com arraste, setas, indicador de posição e suporte a toque.
+
+Validação rápida do motor:
+
+```bash
+node scripts-clinical-reasoning-check.mjs
+```

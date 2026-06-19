@@ -1,0 +1,122 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+export function HorizontalRail({
+  children,
+  className = '',
+  viewportClassName = '',
+  ariaLabel = 'Conteúdo horizontal',
+  step = 0.72,
+  showControls = true,
+  viewportRole
+}) {
+  const viewportRef = useRef(null);
+  const dragRef = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+  const [metrics, setMetrics] = useState({ left: 0, max: 0, client: 1, scroll: 1 });
+
+  const refresh = () => {
+    const node = viewportRef.current;
+    if (!node) return;
+    const max = Math.max(0, node.scrollWidth - node.clientWidth);
+    setMetrics({ left: node.scrollLeft, max, client: node.clientWidth || 1, scroll: node.scrollWidth || 1 });
+  };
+
+  useEffect(() => {
+    const node = viewportRef.current;
+    if (!node) return undefined;
+    refresh();
+    const resize = new ResizeObserver(refresh);
+    resize.observe(node);
+    Array.from(node.children).forEach((child) => resize.observe(child));
+    node.addEventListener('scroll', refresh, { passive: true });
+    window.addEventListener('resize', refresh);
+    return () => {
+      resize.disconnect();
+      node.removeEventListener('scroll', refresh);
+      window.removeEventListener('resize', refresh);
+    };
+  }, [children]);
+
+  const overflow = metrics.max > 6;
+  const canLeft = metrics.left > 4;
+  const canRight = metrics.left < metrics.max - 4;
+  const thumbWidth = useMemo(() => Math.max(18, Math.min(100, (metrics.client / metrics.scroll) * 100)), [metrics]);
+  const thumbTravel = Math.max(0, 100 - thumbWidth);
+  const thumbLeft = metrics.max > 0 ? (metrics.left / metrics.max) * thumbTravel : 0;
+
+  const move = (direction) => {
+    const node = viewportRef.current;
+    if (!node) return;
+    node.scrollBy({ left: direction * node.clientWidth * step, behavior: 'smooth' });
+  };
+
+  const pointerDown = (event) => {
+    if (event.pointerType === 'touch') return;
+    const node = viewportRef.current;
+    if (!node) return;
+    dragRef.current = { active: true, startX: event.clientX, startScroll: node.scrollLeft, moved: false };
+    node.setPointerCapture?.(event.pointerId);
+    node.classList.add('is-dragging');
+  };
+
+  const pointerMove = (event) => {
+    const node = viewportRef.current;
+    if (!node || !dragRef.current.active) return;
+    const delta = event.clientX - dragRef.current.startX;
+    if (Math.abs(delta) > 5) dragRef.current.moved = true;
+    node.scrollLeft = dragRef.current.startScroll - delta;
+  };
+
+  const pointerEnd = (event) => {
+    const node = viewportRef.current;
+    dragRef.current.active = false;
+    node?.releasePointerCapture?.(event.pointerId);
+    node?.classList.remove('is-dragging');
+  };
+
+  return (
+    <div className={`horizontal-rail ${overflow ? 'horizontal-rail-overflow' : ''} ${className}`.trim()}>
+      {showControls && overflow && (
+        <button
+          type="button"
+          className="horizontal-rail-arrow horizontal-rail-arrow-left"
+          onClick={() => move(-1)}
+          disabled={!canLeft}
+          aria-label="Rolar para a esquerda"
+        >
+          <ChevronLeft size={16} />
+        </button>
+      )}
+      <div
+        ref={viewportRef}
+        className={`horizontal-rail-viewport ${viewportClassName}`.trim()}
+        aria-label={ariaLabel}
+        role={viewportRole}
+        onPointerDown={pointerDown}
+        onPointerMove={pointerMove}
+        onPointerUp={pointerEnd}
+        onPointerCancel={pointerEnd}
+        onPointerLeave={(event) => dragRef.current.active && pointerEnd(event)}
+        onClickCapture={(event) => { if (dragRef.current.moved) { event.preventDefault(); event.stopPropagation(); dragRef.current.moved = false; } }}
+      >
+        {children}
+      </div>
+      {showControls && overflow && (
+        <button
+          type="button"
+          className="horizontal-rail-arrow horizontal-rail-arrow-right"
+          onClick={() => move(1)}
+          disabled={!canRight}
+          aria-label="Rolar para a direita"
+        >
+          <ChevronRight size={16} />
+        </button>
+      )}
+      {overflow && (
+        <div className="horizontal-rail-progress" aria-hidden="true">
+          <span style={{ width: `${thumbWidth}%`, left: `${thumbLeft}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}

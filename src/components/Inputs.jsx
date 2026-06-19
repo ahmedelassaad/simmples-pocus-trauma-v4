@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { HorizontalRail } from './HorizontalRail.jsx';
 
 export const NumberField = forwardRef(function NumberField({
   label,
@@ -88,7 +89,7 @@ export function SelectField({ label, value, onChange, options }) {
 
 export function Segmented({ value, onChange, options }) {
   return (
-    <div className="segmented" role="tablist">
+    <HorizontalRail className="segmented-rail" viewportClassName="segmented" ariaLabel="Navegação por abas" viewportRole="tablist">
       {options.map((option) => (
         <button
           key={option.value}
@@ -99,7 +100,7 @@ export function Segmented({ value, onChange, options }) {
           {option.label}
         </button>
       ))}
-    </div>
+    </HorizontalRail>
   );
 }
 

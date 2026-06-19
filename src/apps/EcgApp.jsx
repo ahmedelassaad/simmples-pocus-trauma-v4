@@ -4,6 +4,7 @@ import { Card } from '../components/Layout.jsx';
 import { Segmented } from '../components/Inputs.jsx';
 import { CopyButton } from '../components/CopyButton.jsx';
 import { EcgStrip, EcgTwelveLead } from '../components/EcgWaveforms.jsx';
+import { HorizontalRail } from '../components/HorizontalRail.jsx';
 
 const tabs = [
   { value: 'ritmos', label: 'Ritmos' },
@@ -463,13 +464,13 @@ export function EcgApp() {
           {query && <button type="button" onClick={() => setQuery('')}>Limpar</button>}
         </div>
         {query.trim() && filtered.length === 0 && <div className="empty-state compact"><Search size={22}/><strong>Nenhum padrão encontrado</strong><span>Tente “TV”, “BAV”, “supra inferior”, “torsade” ou parte do nome.</span></div>}
-        <div className="selector-scroll">
+        <HorizontalRail className="ecg-pattern-rail" viewportClassName="selector-scroll" ariaLabel="Padrões eletrocardiográficos">
           {filtered.map((item) => (
             <button key={item.id} type="button" className={selected.id === item.id ? 'selector-chip active' : 'selector-chip'} onClick={() => { setSelectedId(item.id); setTab(item.tab); }}>
               <span>{item.name}</span><small>{item.type}</small>
             </button>
           ))}
-        </div>
+        </HorizontalRail>
         <div className="ecg-control-bar">
           <button type="button" className={paused ? 'ecg-pause-button paused' : 'ecg-pause-button'} onClick={() => setPaused((value) => !value)}>
             {paused ? <Play size={17} /> : <Pause size={17} />}
