@@ -1,3 +1,7 @@
+# SIMMples Suite v22
+
+Versão com correção global e robusta das navegações horizontais. O seletor de ECG, as abas, o menu da Suite, os atalhos do Plantão e o resumo pediátrico aceitam swipe, arraste, setas laterais, teclado e trackpad sem bloquear os cliques.
+
 # SIMMples Suite v19 — Plantão refinado e revisão de qualidade
 
 Versão de acabamento da SIMMples Suite com revisão visual e textual do SIMMples Plantão, preservando todas as funcionalidades da v18.

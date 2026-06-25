@@ -2945,3 +2945,102 @@ button:active { transform: scale(.98); }
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* V22 — trilhos horizontais corrigidos globalmente */
+.horizontal-rail {
+  min-width: 0;
+  max-width: 100%;
+}
+.horizontal-rail-viewport,
+.ecg-pattern-rail .selector-scroll,
+.smart-composer-rail .smart-composer-options,
+.ped-summary-rail .ped-summary-strip,
+.segmented-rail .segmented,
+.suite-dock-rail .suite-dock.suite-dock-top {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  touch-action: pan-x pan-y;
+  scrollbar-width: none !important;
+  scroll-behavior: smooth;
+}
+.horizontal-rail-viewport::-webkit-scrollbar,
+.ecg-pattern-rail .selector-scroll::-webkit-scrollbar,
+.smart-composer-rail .smart-composer-options::-webkit-scrollbar,
+.ped-summary-rail .ped-summary-strip::-webkit-scrollbar,
+.segmented-rail .segmented::-webkit-scrollbar,
+.suite-dock-rail .suite-dock.suite-dock-top::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.segmented-rail .segmented,
+.suite-dock-rail .suite-dock.suite-dock-top {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.horizontal-rail-viewport > * {
+  flex-shrink: 0 !important;
+}
+.horizontal-rail-viewport:focus-visible {
+  outline: 2px solid rgba(86,232,255,.34);
+  outline-offset: 3px;
+  border-radius: 16px;
+}
+.horizontal-rail-viewport.is-dragging,
+.horizontal-rail-viewport.is-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+
+/* Áreas horizontais que não usam HorizontalRail também recebem swipe nativo */
+.calc-table-wrap,
+.avc-image-grid {
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  touch-action: pan-x pan-y;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .horizontal-rail {
+    padding-inline: 8px;
+  }
+  .horizontal-rail-overflow {
+    padding-inline: 8px;
+  }
+  .horizontal-rail-arrow {
+    display: none !important;
+  }
+  .horizontal-rail-progress {
+    left: 12px;
+    right: 12px;
+  }
+}
+
+/* V22.1 — swipe manual confiável em PWA/WebView */
+.horizontal-rail-viewport,
+.ecg-pattern-rail .selector-scroll,
+.smart-composer-rail .smart-composer-options,
+.ped-summary-rail .ped-summary-strip,
+.segmented-rail .segmented,
+.suite-dock-rail .suite-dock.suite-dock-top {
+  /* A página mantém o pan vertical; o componente captura apenas o gesto horizontal. */
+  touch-action: pan-y pinch-zoom !important;
+}
+@media (hover: none) and (pointer: coarse) {
+  .horizontal-rail-arrow {
+    display: grid !important;
+    width: 27px;
+    height: 27px;
+    opacity: .92;
+  }
+  .horizontal-rail-arrow:disabled { opacity: .18; }
+  .horizontal-rail-overflow { padding-inline: 31px; }
+  .horizontal-rail-progress { left: 38px; right: 38px; }
+}
